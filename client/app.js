@@ -40,7 +40,7 @@ function connectSocket(idToken) {
   });
 
   socket.on('queue_joined',  ()     => Lobby.onQueueJoined());
-  socket.on('match_found',   (data) => { Game.onMatchFound(data); showScreen('screen-game'); });
+  socket.on('match_found',   (data) => { Lobby.hideQueueOverlay(); Game.onMatchFound(data); showScreen('screen-game'); });
   socket.on('round_start',   (data) => { Game.onRoundStart(data); showScreen('screen-game'); });
   socket.on('enhance_result',(data) => Game.onEnhanceResult(data));
   socket.on('sell_result',   (data) => Game.onSellResult(data));

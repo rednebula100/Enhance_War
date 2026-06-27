@@ -5,10 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>강화대전</title>
   <link rel="stylesheet" href="style.css">
-  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
-  <!-- Socket.io -->
   <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
 </head>
 <body>
@@ -22,7 +20,7 @@
     </div>
   </div>
 
-  <!-- 메인 메뉴 -->
+  <!-- 메인 메뉴 (매칭 대기 오버레이 포함) -->
   <div id="screen-menu" class="screen">
     <div class="center-panel">
       <h2 class="title">강화대전</h2>
@@ -31,14 +29,12 @@
         <span class="gold-text" id="menu-money">💰 0원</span>
       </div>
       <button id="btn-start-match" class="btn-primary">대결 시작</button>
-      <button class="btn-secondary disabled" disabled>랭킹보드 (준비 중)</button>
-      <button class="btn-secondary disabled" disabled>카드 컬렉션 (준비 중)</button>
+      <button id="btn-ranking" class="btn-secondary">랭킹보드</button>
+      <button id="btn-collection" class="btn-secondary">카드 컬렉션</button>
     </div>
-  </div>
 
-  <!-- 매칭 대기 -->
-  <div id="screen-queue" class="screen">
-    <div class="center-panel">
+    <!-- 매칭 대기 오버레이 — 메인메뉴 위에 덮임 -->
+    <div id="queue-overlay" class="queue-overlay">
       <div class="spinner"></div>
       <p class="queue-text">대결 상대를 찾고 있습니다...</p>
       <button id="btn-cancel-queue" class="btn-secondary">취소</button>
@@ -47,35 +43,25 @@
 
   <!-- 대결 화면 -->
   <div id="screen-game" class="screen">
-    <!-- 상단: HP바 + 라운드/타이머 -->
     <div class="game-topbar">
       <div class="hp-wrap my-hp-wrap">
-        <div class="hp-bar-bg">
-          <div class="hp-bar" id="my-hp-bar"></div>
-        </div>
+        <div class="hp-bar-bg"><div class="hp-bar" id="my-hp-bar"></div></div>
         <span class="hp-text" id="my-hp-text">100</span>
       </div>
       <div class="round-info">
         <span id="round-label">Round 1</span>
-        <div class="timer-bar-bg">
-          <div class="timer-bar" id="timer-bar"></div>
-        </div>
+        <div class="timer-bar-bg"><div class="timer-bar" id="timer-bar"></div></div>
         <span id="timer-text">40</span>
       </div>
       <div class="hp-wrap opp-hp-wrap">
         <span class="hp-text" id="opp-hp-text">100</span>
-        <div class="hp-bar-bg">
-          <div class="hp-bar" id="opp-hp-bar"></div>
-        </div>
+        <div class="hp-bar-bg"><div class="hp-bar" id="opp-hp-bar"></div></div>
       </div>
     </div>
 
-    <!-- 중간: 양쪽 진영 -->
     <div class="game-arena">
-      <!-- 내 진영 (좌) -->
       <div class="player-side my-side">
         <div class="player-name" id="my-name">나</div>
-        <!-- 검 placeholder: Piskel 이미지 준비 시 내부에 <img src="..."> 삽입 -->
         <div class="sword-art" id="my-sword-art">
           <span class="sword-level-badge" id="my-sword-badge">Lv.0</span>
         </div>
@@ -87,20 +73,17 @@
           <span class="gold-text" id="my-coins">💰 100</span>
           <span class="combo-text" id="my-combo">콤보 0</span>
         </div>
-        <div class="sell-preview" id="sell-preview">판매 시 +0</div>
+        <div class="sell-preview" id="sell-preview"></div>
         <div class="action-btns">
           <button id="btn-enhance" class="btn-primary">강화</button>
           <button id="btn-sell" class="btn-accent">판매</button>
         </div>
       </div>
 
-      <!-- VS -->
       <div class="vs-divider">VS</div>
 
-      <!-- 상대 진영 (우) -->
       <div class="player-side opp-side">
         <div class="player-name" id="opp-name">상대방</div>
-        <!-- 검 placeholder -->
         <div class="sword-art opp-sword-art" id="opp-sword-art">
           <span class="sword-level-badge" id="opp-sword-badge">Lv.0</span>
         </div>
@@ -111,13 +94,8 @@
       </div>
     </div>
 
-    <!-- 데미지 알림 오버레이 -->
     <div class="damage-overlay" id="damage-overlay"></div>
-
-    <!-- 손패 (항상 노출) -->
-    <div class="hand-bar" id="hand-bar">
-      <!-- JS로 8슬롯 생성 -->
-    </div>
+    <div class="hand-bar" id="hand-bar"></div>
   </div>
 
   <!-- 상점 화면 -->
@@ -125,16 +103,12 @@
     <div class="shop-container">
       <div class="shop-header">
         <span id="shop-round-label">라운드 종료</span>
-        <div class="timer-bar-bg">
-          <div class="timer-bar" id="shop-timer-bar"></div>
-        </div>
+        <div class="timer-bar-bg"><div class="timer-bar" id="shop-timer-bar"></div></div>
         <span id="shop-timer-text">20</span>
         <span class="gold-text" id="shop-coins">💰 0</span>
       </div>
       <h3 class="shop-title">⚒ 카드 상점</h3>
-      <!-- 진열대 4장 -->
       <div class="shop-shelf" id="shop-shelf"></div>
-      <!-- 손패 -->
       <div class="shop-hand-label">내 손패</div>
       <div class="hand-bar" id="shop-hand-bar"></div>
     </div>

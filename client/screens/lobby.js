@@ -6,13 +6,30 @@
 
     document.getElementById('btn-start-match').addEventListener('click', () => {
       getSocket()?.emit('join_queue');
-      showScreen('screen-queue');
+      // 서버 확인 전 낙관적으로 오버레이 표시
+      showQueueOverlay();
     });
 
     document.getElementById('btn-cancel-queue').addEventListener('click', () => {
       getSocket()?.emit('leave_queue');
-      showScreen('screen-menu');
+      hideQueueOverlay();
     });
+
+    document.getElementById('btn-ranking').addEventListener('click', () => {
+      alert('준비 중입니다.');
+    });
+
+    document.getElementById('btn-collection').addEventListener('click', () => {
+      alert('준비 중입니다.');
+    });
+  }
+
+  function showQueueOverlay() {
+    document.getElementById('queue-overlay').classList.add('active');
+  }
+
+  function hideQueueOverlay() {
+    document.getElementById('queue-overlay').classList.remove('active');
   }
 
   function onAuthOk({ displayName, money }) {
@@ -21,8 +38,8 @@
   }
 
   function onQueueJoined() {
-    showScreen('screen-queue');
+    showQueueOverlay();
   }
 
-  return { init, onAuthOk, onQueueJoined };
+  return { init, onAuthOk, onQueueJoined, hideQueueOverlay };
 })();

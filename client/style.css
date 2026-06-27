@@ -255,3 +255,17 @@ body {
 }
 .result-badge.lose { border-color: var(--text-dim); color: var(--text-dim); }
 .result-stats { font-size: 13px; display: flex; flex-direction: column; gap: 6px; text-align: center; }
+/* ── 매칭 대기 오버레이 ─────────────────────── */
+#screen-menu { position: relative; }
+.queue-overlay {
+  display: none;
+  position: absolute;
+  inset: 0;
+  background: rgba(27, 27, 35, 0.93);
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  z-index: 10;
+}
+.queue-overlay.active { display: flex; }
