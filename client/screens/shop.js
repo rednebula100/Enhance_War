@@ -58,6 +58,12 @@
       slot.className = card ? `hand-slot filled rarity-${card.rarity}` : 'hand-slot';
       if (card) {
         slot.innerHTML = `<span class="card-name">${card.name}</span><span class="card-type">${card.type}</span>`;
+        slot.title = `클릭하여 판매 (+${Math.floor(card.cost * 0.5)}코인)`;
+        slot.addEventListener('click', () => {
+          if (confirm(`'${card.name}' 카드를 판매하겠습니까?\n(+${Math.floor(card.cost * 0.5)}코인)`)) {
+            getSocket()?.emit('sell_hand_card', { cardId: card.id });
+          }
+        });
       }
       bar.appendChild(slot);
     }
@@ -71,5 +77,13 @@
     _renderHand();
   }
 
-  return { init, onShopStart, onBuyCardResult };
+  function onSellHandCardResult({ success, coins, hand: newHand }) {
+    if (!success) return;
+    currentCoins = coins;
+    hand = newHand;
+    document.getElementById('shop-coins').textContent = `💰 ${Math.floor(currentCoins)}`;
+    _renderHand();
+  }
+
+  return { init, onShopStart, onBuyCardResult, onSellHandCardResult };
 })();

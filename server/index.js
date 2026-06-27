@@ -81,6 +81,12 @@ io.on('connection', (socket) => {
     rooms.get(session.room)?.handleBuyCard(session.playerIdx, cardId);
   });
 
+  socket.on('sell_hand_card', ({ cardId }) => {
+    const session = sessions.get(socket.id);
+    if (!session?.room) return;
+    rooms.get(session.room)?.handleSellHandCard(session.playerIdx, cardId);
+  });
+
   socket.on('disconnect', () => {
     const session = sessions.get(socket.id);
     if (!session) return;

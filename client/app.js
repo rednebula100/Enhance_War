@@ -47,7 +47,8 @@ function connectSocket(idToken) {
   socket.on('opponent_update',(data)=> Game.onOpponentUpdate(data));
   socket.on('round_end',     (data) => Game.onRoundEnd(data));
   socket.on('shop_start',    (data) => { Shop.onShopStart(data); showScreen('screen-shop'); });
-  socket.on('buy_card_result',(data)=> Shop.onBuyCardResult(data));
+  socket.on('buy_card_result',    (data) => Shop.onBuyCardResult(data));
+  socket.on('sell_hand_card_result',(data) => Shop.onSellHandCardResult(data));
   socket.on('match_end',     (data) => { Result.onMatchEnd(data); showScreen('screen-result'); });
 }
 

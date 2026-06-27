@@ -14,6 +14,12 @@
     badge.className = win ? 'result-badge' : 'result-badge lose';
     document.getElementById('result-round').textContent = `${finalRound}라운드`;
     document.getElementById('result-money').textContent = `+${moneyEarned.toLocaleString()}원`;
+    if (moneyEarned > 0) {
+      const moneyEl = document.getElementById('menu-money');
+      const m = moneyEl.textContent.match(/[\d,]+/);
+      const prev = m ? parseInt(m[0].replace(/,/g, ''), 10) : 0;
+      moneyEl.textContent = `💰 ${(prev + moneyEarned).toLocaleString()}원`;
+    }
   }
 
   return { init, onMatchEnd };

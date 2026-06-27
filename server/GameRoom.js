@@ -1,4 +1,4 @@
-﻿const { enhanceCost, enhanceSuccessRate, sellValue, attackPower, hpDamage } = require('../core/formulas');
+﻿const { enhanceCost, enhanceSuccessRate, sellValue, attackPower, durability, hpDamage } = require('../core/formulas');
 const { botDecide } = require('./botAI');
 const { updateMatchResult } = require('./firebase');
 
@@ -78,6 +78,20 @@ class GameRoom {
 
     this._emit(playerIdx, 'buy_card_result', {
       success: true, cardId, coins: sword.coins, hand: sword.hand,
+    });
+  }
+
+  handleSellHandCard(playerIdx, cardId) {
+    if (this.phase !== 'SHOP') return;
+    const sword = this.swords[playerIdx];
+    const cardIdx = sword.hand.findIndex(c => c.id === cardId);
+    if (cardIdx === -1) return;
+    const card = sword.hand[cardIdx];
+    const gained = Math.floor(card.cost * 0.5);
+    sword.hand.splice(cardIdx, 1);
+    sword.coins += gained;
+    this._emit(playerIdx, 'sell_hand_card_result', {
+      success: true, cardId, gained, coins: sword.coins, hand: [...sword.hand],
     });
   }
 
@@ -165,16 +179,21 @@ class GameRoom {
 
     const atk0 = attackPower(this.swords[0].level);
     const atk1 = attackPower(this.swords[1].level);
+    const dur0 = durability(this.swords[0].level);
+    const dur1 = durability(this.swords[1].level);
+    // ticksX = 상대 ATK에 내 DUR이 버티는 턴 수. 낮을수록 먼저 깨짐 → 패배
+    const ticksA = atk1 > 0 ? Math.ceil(dur0 / atk1) : Infinity;
+    const ticksB = atk0 > 0 ? Math.ceil(dur1 / atk0) : Infinity;
     let dmg0 = 0, dmg1 = 0;
 
-    if (atk0 > atk1) {
-      dmg1 = hpDamage(atk0, this.round);
-      this.swords[1].hp -= dmg1;
-    } else if (atk1 > atk0) {
+    if (ticksA < ticksB) {
       dmg0 = hpDamage(atk1, this.round);
       this.swords[0].hp -= dmg0;
+    } else if (ticksB < ticksA) {
+      dmg1 = hpDamage(atk0, this.round);
+      this.swords[1].hp -= dmg1;
     }
-    // 동률: 이번 라운드 피해 없음
+    // 동률(ticksA === ticksB): 피해 없음
 
     [0, 1].forEach(i => {
       this._emit(i, 'round_end', {
@@ -200,6 +219,7 @@ class GameRoom {
       this._emit(i, 'shop_start', {
         timeLeft: GAME_CONFIG.SHOP_DURATION_MS / 1000,
         cards: shopCards,
+        myState: { coins: this.swords[i].coins, hand: [...this.swords[i].hand] },
       });
     });
 

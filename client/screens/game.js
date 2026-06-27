@@ -131,6 +131,7 @@
     _updateOppState({ level: opponentState.level, atk: opponentState.atk });
     _updateHp(myState.hp, opponentState.hp);
     state.myHp = myState.hp; state.oppHp = opponentState.hp;
+    _updateHand(myState.hand ?? [], 'hand-bar');
   }
 
   function onEnhanceResult({ success, level, combo, coins, hand }) {
