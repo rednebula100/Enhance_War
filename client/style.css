@@ -1,0 +1,257 @@
+﻿@import url('https://cdn.jsdelivr.net/npm/galmuri/dist/galmuri.css');
+
+/* ── 변수 ───────────────────────────────────── */
+:root {
+  --bg:           #2b2b33;
+  --panel:        #1e1e26;
+  --border:       #3a3a4a;
+  --accent:       #7a2e1f;
+  --accent-light: #c44a2a;
+  --gold:         #f0c040;
+  --text:         #e0d0b0;
+  --text-dim:     #8a7a6a;
+  --hp-red:       #c0392b;
+  --hp-green:     #27ae60;
+  --danger:       #e74c3c;
+  /* 성급 테두리 */
+  --r1: #808080; --r2: #4caf50; --r3: #2196f3;
+  --r4: #9c27b0; --r5: #ff9800; --r6: #f44336;
+}
+
+/* ── 기본 ───────────────────────────────────── */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Galmuri9', 'Courier New', monospace;
+  background: var(--bg);
+  color: var(--text);
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  align-items: stretch;
+}
+
+/* ── 화면 전환 ──────────────────────────────── */
+.screen { display: none; width: 100%; flex-direction: column; }
+.screen.active { display: flex; }
+
+/* ── 공통 컴포넌트 ──────────────────────────── */
+.center-panel {
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 32px;
+  background: var(--panel);
+  border: 2px solid var(--accent);
+  min-width: 320px;
+}
+.title    { font-size: 28px; color: var(--gold); letter-spacing: 4px; }
+.subtitle { font-size: 12px; color: var(--text-dim); }
+.gold-text { color: var(--gold); }
+
+.btn-primary {
+  width: 100%;
+  padding: 10px 20px;
+  background: var(--accent);
+  color: var(--text);
+  border: 2px solid var(--accent-light);
+  font-family: inherit;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+.btn-primary:hover { background: var(--accent-light); }
+.btn-secondary {
+  width: 100%;
+  padding: 8px 20px;
+  background: var(--panel);
+  color: var(--text-dim);
+  border: 2px solid var(--border);
+  font-family: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+.btn-accent {
+  width: 100%;
+  padding: 10px 20px;
+  background: #1a3a5c;
+  color: var(--text);
+  border: 2px solid #2a6aac;
+  font-family: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+.btn-accent:hover { background: #2a4a7c; }
+.disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ── 로그인 ─────────────────────────────────── */
+#screen-login { align-items: center; justify-content: center; }
+
+/* ── 메인 메뉴 ──────────────────────────────── */
+#screen-menu { align-items: center; justify-content: center; }
+.player-info { display: flex; gap: 16px; font-size: 13px; }
+
+/* ── 매칭 대기 ──────────────────────────────── */
+#screen-queue { align-items: center; justify-content: center; }
+.spinner {
+  width: 48px; height: 48px;
+  border: 4px solid var(--border);
+  border-top-color: var(--accent-light);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.queue-text { font-size: 13px; color: var(--text-dim); }
+
+/* ── 대결 화면 ──────────────────────────────── */
+#screen-game { height: 100vh; }
+
+.game-topbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--panel);
+  border-bottom: 2px solid var(--accent);
+  height: 52px;
+  flex-shrink: 0;
+}
+.hp-wrap { display: flex; align-items: center; gap: 6px; flex: 1; }
+.opp-hp-wrap { flex-direction: row-reverse; }
+.hp-bar-bg {
+  flex: 1; height: 16px;
+  background: var(--border);
+  border: 1px solid var(--text-dim);
+}
+.hp-bar { height: 100%; background: var(--hp-red); transition: width 0.4s; width: 100%; }
+.hp-text { font-size: 13px; min-width: 28px; }
+
+.round-info {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 4px; min-width: 100px;
+}
+#round-label { font-size: 12px; color: var(--gold); }
+.timer-bar-bg { width: 100%; height: 6px; background: var(--border); }
+.timer-bar { height: 100%; background: var(--hp-green); transition: width 1s linear, background 1s; }
+#timer-text { font-size: 11px; color: var(--text-dim); }
+
+.game-arena {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+.player-side {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 10px; padding: 16px;
+}
+.opp-side { background: rgba(0,0,0,0.1); }
+.player-name { font-size: 12px; color: var(--text-dim); }
+
+/* 검 placeholder — Piskel 이미지 준비 시 내부에 <img> 삽입 */
+.sword-art {
+  width: 90px; height: 150px;
+  background: var(--panel);
+  border: 2px solid var(--accent);
+  display: flex; align-items: flex-end; justify-content: center;
+  padding-bottom: 6px;
+  position: relative;
+  image-rendering: pixelated; /* 픽셀아트 대응 */
+}
+.sword-art img { width: 100%; height: 100%; object-fit: contain; image-rendering: pixelated; }
+.sword-level-badge {
+  font-size: 11px; color: var(--gold);
+  background: rgba(0,0,0,0.6); padding: 2px 4px;
+}
+.opp-sword-art { border-color: var(--border); }
+
+.stats-row { display: flex; gap: 12px; font-size: 12px; }
+.coins-row { display: flex; gap: 12px; font-size: 12px; align-items: center; }
+.combo-text { color: var(--accent-light); }
+.sell-preview { font-size: 11px; color: #4caf50; min-height: 16px; }
+.action-btns { display: flex; flex-direction: column; gap: 6px; width: 100%; max-width: 140px; }
+
+.vs-divider {
+  display: flex; align-items: center; justify-content: center;
+  width: 40px; font-size: 11px; color: var(--text-dim);
+  background: var(--panel); border-left: 1px solid var(--border); border-right: 1px solid var(--border);
+}
+
+/* 데미지 오버레이 */
+.damage-overlay {
+  position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  font-size: 28px; color: var(--danger); pointer-events: none;
+  opacity: 0; transition: opacity 0.3s;
+  text-shadow: 0 0 8px rgba(231,76,60,0.8);
+}
+.damage-overlay.show { opacity: 1; }
+
+/* ── 손패 ───────────────────────────────────── */
+.hand-bar {
+  display: flex; gap: 6px; padding: 8px 12px;
+  background: var(--panel); border-top: 2px solid var(--accent);
+  height: 90px; flex-shrink: 0; overflow-x: auto;
+}
+.hand-slot {
+  width: 64px; min-width: 64px; height: 70px;
+  border: 2px solid var(--border); background: var(--bg);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  font-size: 10px; text-align: center; padding: 4px;
+  gap: 2px;
+}
+.hand-slot.filled { cursor: default; }
+.hand-slot .card-name { font-size: 9px; line-height: 1.2; }
+.hand-slot .card-type { font-size: 8px; color: var(--text-dim); }
+
+/* 성급 테두리 */
+.rarity-1 { border-color: var(--r1); }
+.rarity-2 { border-color: var(--r2); }
+.rarity-3 { border-color: var(--r3); }
+.rarity-4 { border-color: var(--r4); }
+.rarity-5 { border-color: var(--r5); }
+.rarity-6 { border-color: var(--r6); }
+/* 7성: 무지개 — Piskel 스프라이트 교체 전 임시 CSS 애니메이션 */
+.rarity-7 { animation: rainbow-border 1.5s linear infinite; }
+@keyframes rainbow-border {
+  0%   { border-color: #f44336; }
+  17%  { border-color: #ff9800; }
+  33%  { border-color: #f0c040; }
+  50%  { border-color: #4caf50; }
+  67%  { border-color: #2196f3; }
+  83%  { border-color: #9c27b0; }
+  100% { border-color: #f44336; }
+}
+
+/* ── 상점 화면 ──────────────────────────────── */
+#screen-shop { justify-content: center; align-items: center; }
+.shop-container {
+  display: flex; flex-direction: column; gap: 12px;
+  padding: 20px; background: var(--panel);
+  border: 2px solid var(--accent); width: 100%; max-width: 640px;
+}
+.shop-header { display: flex; align-items: center; gap: 10px; font-size: 12px; }
+.shop-header .timer-bar-bg { flex: 1; height: 6px; background: var(--border); }
+.shop-title { font-size: 14px; color: var(--gold); text-align: center; }
+.shop-shelf { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+.shop-card {
+  width: 120px; padding: 10px 8px;
+  background: var(--bg); border: 2px solid var(--border);
+  display: flex; flex-direction: column; align-items: center;
+  gap: 6px; font-size: 11px; text-align: center; cursor: pointer;
+}
+.shop-card:hover { background: var(--panel); }
+.shop-card .card-cost { color: var(--gold); font-size: 10px; }
+.shop-card .card-rarity-label { font-size: 9px; color: var(--text-dim); }
+.shop-hand-label { font-size: 11px; color: var(--text-dim); }
+
+/* ── 결과 화면 ──────────────────────────────── */
+#screen-result { align-items: center; justify-content: center; }
+.result-badge {
+  font-size: 36px; padding: 8px 24px;
+  border: 3px solid var(--gold); color: var(--gold);
+  letter-spacing: 6px;
+}
+.result-badge.lose { border-color: var(--text-dim); color: var(--text-dim); }
+.result-stats { font-size: 13px; display: flex; flex-direction: column; gap: 6px; text-align: center; }

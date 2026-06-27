@@ -1,4 +1,5 @@
-﻿require('dotenv').config();
+﻿const path = require('path');
+require('dotenv').config();
 const express = require('express');
 const { createServer } = require('http');
 const { Server } = require('socket.io');
@@ -7,6 +8,7 @@ const { joinQueue, leaveQueue } = require('./matchmaker');
 const GameRoom = require('./GameRoom');
 
 const app = express();
+app.use(express.static(path.join(__dirname, '../client')));
 const httpServer = createServer(app);
 const io = new Server(httpServer, { cors: { origin: '*' } });
 

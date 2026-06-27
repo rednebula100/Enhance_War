@@ -1,0 +1,161 @@
+﻿<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>강화대전</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <!-- Socket.io -->
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+</head>
+<body>
+
+  <!-- 로그인 -->
+  <div id="screen-login" class="screen active">
+    <div class="center-panel">
+      <h1 class="title">강화대전</h1>
+      <p class="subtitle">⚒ 검을 강화하고, 상대를 꺾어라</p>
+      <button id="btn-google-login" class="btn-primary">Google로 로그인</button>
+    </div>
+  </div>
+
+  <!-- 메인 메뉴 -->
+  <div id="screen-menu" class="screen">
+    <div class="center-panel">
+      <h2 class="title">강화대전</h2>
+      <div class="player-info">
+        <span id="menu-name">플레이어</span>
+        <span class="gold-text" id="menu-money">💰 0원</span>
+      </div>
+      <button id="btn-start-match" class="btn-primary">대결 시작</button>
+      <button class="btn-secondary disabled" disabled>랭킹보드 (준비 중)</button>
+      <button class="btn-secondary disabled" disabled>카드 컬렉션 (준비 중)</button>
+    </div>
+  </div>
+
+  <!-- 매칭 대기 -->
+  <div id="screen-queue" class="screen">
+    <div class="center-panel">
+      <div class="spinner"></div>
+      <p class="queue-text">대결 상대를 찾고 있습니다...</p>
+      <button id="btn-cancel-queue" class="btn-secondary">취소</button>
+    </div>
+  </div>
+
+  <!-- 대결 화면 -->
+  <div id="screen-game" class="screen">
+    <!-- 상단: HP바 + 라운드/타이머 -->
+    <div class="game-topbar">
+      <div class="hp-wrap my-hp-wrap">
+        <div class="hp-bar-bg">
+          <div class="hp-bar" id="my-hp-bar"></div>
+        </div>
+        <span class="hp-text" id="my-hp-text">100</span>
+      </div>
+      <div class="round-info">
+        <span id="round-label">Round 1</span>
+        <div class="timer-bar-bg">
+          <div class="timer-bar" id="timer-bar"></div>
+        </div>
+        <span id="timer-text">40</span>
+      </div>
+      <div class="hp-wrap opp-hp-wrap">
+        <span class="hp-text" id="opp-hp-text">100</span>
+        <div class="hp-bar-bg">
+          <div class="hp-bar" id="opp-hp-bar"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 중간: 양쪽 진영 -->
+    <div class="game-arena">
+      <!-- 내 진영 (좌) -->
+      <div class="player-side my-side">
+        <div class="player-name" id="my-name">나</div>
+        <!-- 검 placeholder: Piskel 이미지 준비 시 내부에 <img src="..."> 삽입 -->
+        <div class="sword-art" id="my-sword-art">
+          <span class="sword-level-badge" id="my-sword-badge">Lv.0</span>
+        </div>
+        <div class="stats-row">
+          <span id="my-atk">ATK 0</span>
+          <span id="my-dur">DUR 50</span>
+        </div>
+        <div class="coins-row">
+          <span class="gold-text" id="my-coins">💰 100</span>
+          <span class="combo-text" id="my-combo">콤보 0</span>
+        </div>
+        <div class="sell-preview" id="sell-preview">판매 시 +0</div>
+        <div class="action-btns">
+          <button id="btn-enhance" class="btn-primary">강화</button>
+          <button id="btn-sell" class="btn-accent">판매</button>
+        </div>
+      </div>
+
+      <!-- VS -->
+      <div class="vs-divider">VS</div>
+
+      <!-- 상대 진영 (우) -->
+      <div class="player-side opp-side">
+        <div class="player-name" id="opp-name">상대방</div>
+        <!-- 검 placeholder -->
+        <div class="sword-art opp-sword-art" id="opp-sword-art">
+          <span class="sword-level-badge" id="opp-sword-badge">Lv.0</span>
+        </div>
+        <div class="stats-row">
+          <span id="opp-atk">ATK 0</span>
+          <span id="opp-dur">DUR 50</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 데미지 알림 오버레이 -->
+    <div class="damage-overlay" id="damage-overlay"></div>
+
+    <!-- 손패 (항상 노출) -->
+    <div class="hand-bar" id="hand-bar">
+      <!-- JS로 8슬롯 생성 -->
+    </div>
+  </div>
+
+  <!-- 상점 화면 -->
+  <div id="screen-shop" class="screen">
+    <div class="shop-container">
+      <div class="shop-header">
+        <span id="shop-round-label">라운드 종료</span>
+        <div class="timer-bar-bg">
+          <div class="timer-bar" id="shop-timer-bar"></div>
+        </div>
+        <span id="shop-timer-text">20</span>
+        <span class="gold-text" id="shop-coins">💰 0</span>
+      </div>
+      <h3 class="shop-title">⚒ 카드 상점</h3>
+      <!-- 진열대 4장 -->
+      <div class="shop-shelf" id="shop-shelf"></div>
+      <!-- 손패 -->
+      <div class="shop-hand-label">내 손패</div>
+      <div class="hand-bar" id="shop-hand-bar"></div>
+    </div>
+  </div>
+
+  <!-- 결과 화면 -->
+  <div id="screen-result" class="screen">
+    <div class="center-panel">
+      <div class="result-badge" id="result-badge">승리</div>
+      <div class="result-stats">
+        <p>최종 라운드: <span id="result-round">-</span></p>
+        <p>획득한 돈: <span class="gold-text" id="result-money">0원</span></p>
+      </div>
+      <button id="btn-back-menu" class="btn-primary">메인 메뉴로</button>
+    </div>
+  </div>
+
+  <script src="screens/lobby.js"></script>
+  <script src="screens/game.js"></script>
+  <script src="screens/shop.js"></script>
+  <script src="screens/result.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

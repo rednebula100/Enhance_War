@@ -9,7 +9,7 @@ const GAME_CONFIG = {
   SHOP_DURATION_MS: 20_000,
   BOT_TICK_INTERVAL_MS: 6_000, // ~6 actions per round, matches simulate.js MAX_ACTIONS_PER_ROUND
   HAND_MAX: 8,
-  SHOP_CARD_COUNT: 3,
+  SHOP_CARD_COUNT: 4,
 };
 
 // 스텁 카드 풀 — 25종 전체는 별도 단계에서 구현
