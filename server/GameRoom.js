@@ -152,6 +152,7 @@ class GameRoom {
     sword.coins -= cost;
     const success = Math.random() < enhanceSuccessRate(sword.level);
     if (success) { sword.level++; sword.combo++; }
+    else { sword.level = 0; sword.combo = 0; }
 
     this._emit(idx, 'enhance_result', {
       success, level: sword.level, combo: sword.combo, coins: sword.coins,
