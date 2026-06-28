@@ -25,37 +25,50 @@
   // ── 손패 슬롯 생성 ────────────────────────────
   function _buildHandSlots(containerId) {
     const bar = document.getElementById(containerId);
+    if (!bar) return;
     bar.innerHTML = '';
     for (let i = 0; i < 8; i++) {
       const slot = document.createElement('div');
-      slot.className = 'hand-slot';
+      slot.className = 'hand-slot rarity-0';
+      slot.style.cssText = 'background:#2a2830;box-shadow:inset 0 0 0 1px #3a3a4a;';
       slot.dataset.index = i;
+      const inner = document.createElement('div');
+      inner.className = 'hand-slot-inner';
+      slot.appendChild(inner);
       bar.appendChild(slot);
     }
   }
 
   // ── 손패 업데이트 ─────────────────────────────
   function _updateHand(hand, containerId) {
+    _buildHandSlots(containerId);
     const slots = document.querySelectorAll(`#${containerId} .hand-slot`);
     slots.forEach((slot, i) => {
       const card = hand[i];
-      if (card) {
-        slot.className = `hand-slot filled rarity-${card.rarity}`;
-        const lvTag = card.xpLevel > 1 ? ` Lv${card.xpLevel}` : '';
-        const iconBg = ['','#888','#4caf50','#2196f3','#9c27b0','#f44336','#ff9800','#f0c040'][card.rarity] || '#888';
-        slot.innerHTML = `<div class="card-icon-box" style="background:${iconBg}"></div><span class="card-rarity-label">${'★'.repeat(card.rarity)}</span><span class="card-name">${card.name}${lvTag}</span>`;
-        slot.title = card.description ?? '';
-        if (card.type === 'active') {
-          slot.classList.add('active-card');
-          slot.addEventListener('click', () => {
-            if (confirm(`[액티브] ${card.name}\n${card.description ?? ''}\n\n발동하겠습니까?`)) {
-              getSocket()?.emit('use_card', { cardId: card.id });
-            }
-          });
-        }
-      } else {
-        slot.className = 'hand-slot';
-        slot.innerHTML = '';
+      if (!card) return;
+      const rarityColors = ['','#9aa0ac','#4fbf66','#3f8be0','#a865e8','#f5972a','#e8463f',null];
+      const isR7 = card.rarity === 7;
+      slot.className = `hand-slot filled rarity-${card.rarity}`;
+      if (isR7) slot.style.cssText = '';
+      else { slot.style.background = rarityColors[card.rarity] || '#9aa0ac'; slot.style.boxShadow = '3px 3px 0 rgba(0,0,0,.55)'; }
+      const lvTag = card.xpLevel > 1 ? ` Lv${card.xpLevel}` : '';
+      const gemColor = rarityColors[card.rarity] || '#9aa0ac';
+      slot.innerHTML = `
+        <div class="hand-slot-inner">
+          <div class="card-cost-badge" style="background:${isR7?'#ffd84d':gemColor}">${card.cost ?? ''}</div>
+          <div class="card-art-area">${card.art || card.name.substring(0,2)}</div>
+          <div class="card-name">${card.name}${lvTag}</div>
+          <div class="card-divider"></div>
+          <div class="card-effect">${card.description ?? ''}</div>
+        </div>`;
+      slot.title = card.description ?? '';
+      if (card.type === 'active') {
+        slot.classList.add('active-card');
+        slot.addEventListener('click', () => {
+          if (confirm(`[액티브] ${card.name}\n${card.description ?? ''}\n\n발동하겠습니까?`)) {
+            getSocket()?.emit('use_card', { cardId: card.id });
+          }
+        });
       }
     });
   }
@@ -92,10 +105,15 @@
   // ── HP바 업데이트 ─────────────────────────────
   function _updateHp(myHp, oppHp) {
     const clamp = v => Math.max(0, Math.min(100, v));
-    document.getElementById('my-hp-bar').style.width  = clamp(myHp)  + '%';
-    document.getElementById('opp-hp-bar').style.width = clamp(oppHp) + '%';
-    document.getElementById('my-hp-text').textContent  = Math.max(0, Math.round(myHp));
-    document.getElementById('opp-hp-text').textContent = Math.max(0, Math.round(oppHp));
+    const mPct = clamp(myHp) + '%'; const oPct = clamp(oppHp) + '%';
+    const el = id => document.getElementById(id);
+    if (el('my-hp-bar'))   el('my-hp-bar').style.width   = mPct;
+    if (el('my-hp-bar2'))  el('my-hp-bar2').style.width  = mPct;
+    if (el('opp-hp-bar'))  el('opp-hp-bar').style.width  = oPct;
+    if (el('opp-hp-bar2')) el('opp-hp-bar2').style.width = oPct;
+    if (el('my-hp-text'))  el('my-hp-text').textContent  = Math.max(0, Math.round(myHp));
+    if (el('my-hp-text2')) el('my-hp-text2').textContent = `${Math.max(0,Math.round(myHp))} / 100`;
+    if (el('opp-hp-text')) el('opp-hp-text').textContent = Math.max(0, Math.round(oppHp));
   }
 
   // ── 내 상태 UI 갱신 ───────────────────────────
@@ -104,22 +122,26 @@
     state.myCombo = combo ?? state.myCombo;
     state.myCoins = coins ?? state.myCoins;
 
-    document.getElementById('my-sword-badge').textContent = `Lv.${state.myLevel}`;
-    document.getElementById('my-atk').textContent = `ATK ${state.myLevel * 10}`;
-    document.getElementById('my-dur').textContent = `DUR ${50 + state.myLevel * 15}`;
-    document.getElementById('my-coins').textContent = `💰 ${Math.floor(state.myCoins)}`;
-    document.getElementById('my-combo').textContent = `콤보 ${state.myCombo}`;
+    const lb = document.getElementById('my-level-badge');   if (lb) lb.textContent = `Lv.${state.myLevel}`;
+    const sb = document.getElementById('my-sword-badge');   if (sb) sb.textContent = `Lv.${state.myLevel}`;
+    const atk = document.getElementById('my-atk');          if (atk) atk.textContent = state.myLevel * 10;
+    const dur = document.getElementById('my-dur');          if (dur) dur.textContent = 50 + state.myLevel * 15;
+    const coins = document.getElementById('my-coins');      if (coins) coins.textContent = Math.floor(state.myCoins);
+    const combo = document.getElementById('my-combo');      if (combo) combo.textContent = `콤보 ${state.myCombo}`;
 
     const sellVal = Math.floor(state.myLevel * 50 * (1 + state.myCombo * 0.15));
-    document.getElementById('sell-preview').textContent =
-      state.myLevel > 0 ? `판매 시 +${sellVal}코인` : '';
+    const sp = document.getElementById('sell-preview');
+    if (sp) sp.textContent = state.myLevel > 0 ? `판매 시 +${sellVal}코인` : '';
+
+    const sellBtn = document.getElementById('btn-sell');
+    if (sellBtn) sellBtn.innerHTML = `판매<span style="font-family:'Galmuri7',monospace;font-size:8px;color:#16344f;margin-top:2px;">+${sellVal} 코인</span>`;
   }
 
   // ── 상대 상태 UI 갱신 ─────────────────────────
   function _updateOppState({ level, atk }) {
-    document.getElementById('opp-sword-badge').textContent = `Lv.${level}`;
-    document.getElementById('opp-atk').textContent = `ATK ${atk}`;
-    document.getElementById('opp-dur').textContent = `DUR ${50 + level * 15}`;
+    const sb = document.getElementById('opp-sword-badge'); if (sb) sb.textContent = `Lv.${level}`;
+    const atkEl = document.getElementById('opp-atk');     if (atkEl) atkEl.textContent = atk;
+    const durEl = document.getElementById('opp-dur');     if (durEl) durEl.textContent = `DUR ${50 + level * 15}`;
   }
 
   // ── 전투 애니메이션 유틸리티 ─────────────────────────────────────────

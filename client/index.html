@@ -11,16 +11,24 @@
 </head>
 <body>
 
+  <!-- 대장간 분위기 이펙트 -->
+  <div class="vignette"></div>
+  <div class="ember" style="left:6%;bottom:96px;width:4px;height:4px;background:#ff9a3c;--dur:3.6s;--delay:0s;"></div>
+  <div class="ember" style="left:10%;bottom:96px;width:3px;height:3px;background:#ffbe5c;--dur:4.4s;--delay:.8s;"></div>
+  <div class="ember" style="left:90%;bottom:96px;width:4px;height:4px;background:#ff9a3c;--dur:4s;--delay:.4s;"></div>
+  <div class="ember" style="left:94%;bottom:96px;width:3px;height:3px;background:#ffbe5c;--dur:3.2s;--delay:1.4s;"></div>
+  <div class="ember" style="left:50%;bottom:90px;width:3px;height:3px;background:#ffbe5c;--dur:5s;--delay:.6s;"></div>
+
   <!-- 로그인 -->
   <div id="screen-login" class="screen active">
     <div class="center-panel">
       <h1 class="title">강화대전</h1>
       <p class="subtitle">⚒ 검을 강화하고, 상대를 꺾어라</p>
-      <button id="btn-google-login" class="btn-primary">Google로 로그인</button>
+      <button id="btn-google-login" class="btn-primary" style="font-size:14px;height:44px;">Google로 로그인</button>
     </div>
   </div>
 
-  <!-- 메인 메뉴 (매칭 대기 오버레이 포함) -->
+  <!-- 메인 메뉴 -->
   <div id="screen-menu" class="screen">
     <div class="center-panel">
       <h2 class="title">강화대전</h2>
@@ -28,106 +36,233 @@
         <span id="menu-name">플레이어</span>
         <span class="gold-text" id="menu-money">💰 0원</span>
       </div>
-      <button id="btn-start-match" class="btn-primary">대결 시작</button>
-      <button id="btn-ranking" class="btn-secondary">랭킹보드</button>
-      <button id="btn-collection" class="btn-secondary">카드 컬렉션</button>
+      <button id="btn-start-match" class="btn-primary" style="font-size:16px;height:48px;">대결 시작</button>
+      <button id="btn-ranking"    class="btn-secondary" style="font-size:13px;height:36px;">랭킹보드</button>
+      <button id="btn-collection" class="btn-secondary" style="font-size:13px;height:36px;">카드 컬렉션</button>
     </div>
 
-    <!-- 매칭 대기 오버레이 — 메인메뉴 위에 덮임 -->
+    <!-- 매칭 대기 오버레이 -->
     <div id="queue-overlay" class="queue-overlay">
       <div class="spinner"></div>
       <p class="queue-text">대결 상대를 찾고 있습니다...</p>
-      <button id="btn-cancel-queue" class="btn-secondary">취소</button>
+      <button id="btn-cancel-queue" class="btn-secondary" style="font-size:12px;height:36px;width:120px;">취소</button>
     </div>
   </div>
 
   <!-- 대결 화면 -->
   <div id="screen-game" class="screen">
+
+    <!-- 상단 HP/라운드 바 -->
     <div class="game-topbar">
       <div class="hp-wrap my-hp-wrap">
-        <div class="hp-bar-bg"><div class="hp-bar" id="my-hp-bar"></div></div>
+        <div class="hp-bar-bg" style="flex:1;"><div class="hp-bar" id="my-hp-bar"></div></div>
         <span class="hp-text" id="my-hp-text">100</span>
       </div>
       <div class="round-info">
         <span id="round-label">Round 1</span>
-        <div class="timer-bar-bg"><div class="timer-bar" id="timer-bar"></div></div>
+        <div class="timer-bar-bg" style="width:80px;"><div class="timer-bar" id="timer-bar"></div></div>
         <span id="timer-text">40</span>
       </div>
       <div class="hp-wrap opp-hp-wrap">
         <span class="hp-text" id="opp-hp-text">100</span>
-        <div class="hp-bar-bg"><div class="hp-bar" id="opp-hp-bar"></div></div>
+        <div class="hp-bar-bg" style="flex:1;"><div class="hp-bar" id="opp-hp-bar" style="margin-left:auto;"></div></div>
       </div>
     </div>
 
     <div class="game-arena">
-      <div class="player-side my-side">
-        <div class="player-name" id="my-name">나</div>
+
+      <!-- 상대 패널 (compact / 위) -->
+      <div class="opp-side">
+        <div class="opp-avatar">
+          <!-- 픽셀 검 아이콘 -->
+          <div style="width:5px;height:17px;background:linear-gradient(#eef2f7,#9aa4b2);"></div>
+          <div style="width:19px;height:4px;background:linear-gradient(#ffd86a,#c2902f);margin-top:-1px;"></div>
+          <div style="width:4px;height:5px;background:#6e4a2a;"></div>
+          <div style="width:7px;height:5px;background:#ffd86a;margin-top:-1px;"></div>
+        </div>
+        <div class="opp-info">
+          <div class="opp-name-text" id="opp-name">상대방</div>
+          <div class="opp-rank">랭크 · —</div>
+        </div>
+        <div class="opp-hp-section">
+          <span style="font-family:'Galmuri7',monospace;font-size:9px;color:#e07a72;">HP</span>
+          <div class="hp-bar-bg" style="flex:1;height:11px;">
+            <div class="hp-bar" id="opp-hp-bar2"></div>
+          </div>
+        </div>
+        <!-- 상대 검 썸네일 -->
+        <div class="opp-sword-art" id="opp-sword-art">
+          <span class="sword-level-badge" id="opp-sword-badge" style="position:static;transform:none;font-size:7px;">Lv.0</span>
+        </div>
+        <div class="opp-stats">
+          <div style="display:flex;align-items:baseline;gap:4px;">
+            <span class="atk-label">ATK</span>
+            <span style="font-family:'Galmuri11',sans-serif;font-size:15px;color:#ffb24d;" id="opp-atk">0</span>
+          </div>
+          <div style="font-family:'Galmuri7',monospace;font-size:8px;color:var(--text-dim);" id="opp-dur">DUR 50</div>
+        </div>
+        <!-- 상대 손패 수 -->
+        <div class="opp-card-count" style="margin-left:auto;">
+          <span style="font-family:'Galmuri7',monospace;font-size:8px;color:var(--text-dim);">손패</span>
+          <span style="font-family:'Galmuri11',sans-serif;font-size:14px;color:var(--gold);" id="opp-hand-count">×0</span>
+        </div>
+      </div>
+
+      <!-- VS 구분선 -->
+      <div class="vs-divider">
+        <div class="vs-badge">VS</div>
+      </div>
+
+      <!-- 내 영역 (main / 아래) -->
+      <div class="my-side">
+
+        <!-- 내 프로필 -->
+        <div class="my-profile">
+          <div class="my-avatar-row">
+            <div class="my-avatar">
+              <div style="width:6px;height:22px;background:linear-gradient(#eef2f7,#9aa4b2);box-shadow:0 0 4px rgba(190,215,255,.4);"></div>
+              <div style="width:24px;height:5px;background:linear-gradient(#ffd86a,#c2902f);margin-top:-1px;"></div>
+              <div style="width:5px;height:7px;background:#6e4a2a;"></div>
+              <div style="width:9px;height:6px;background:#ffd86a;margin-top:-1px;"></div>
+            </div>
+            <div>
+              <div class="my-name-text" id="my-name">나</div>
+              <div class="my-rank">골드 I</div>
+            </div>
+          </div>
+          <div class="my-hp-row">
+            <span class="my-hp-label">HP</span>
+            <div class="hp-bar-bg" style="flex:1;height:13px;">
+              <div class="hp-bar" id="my-hp-bar2"></div>
+              <span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'Galmuri7',monospace;font-size:8px;color:#fff;text-shadow:1px 1px 0 #000;" id="my-hp-text2">100 / 100</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 내 검 -->
         <div class="sword-area">
-          <div class="anvil-wrap">
-            <div class="hammer" id="hammer-icon" title="망치">&#x1F528;</div>
-            <div class="anvil-box" id="anvil-box">&#x2692;</div>
+          <div style="display:flex;align-items:flex-end;gap:8px;">
+            <div class="anvil-wrap">
+              <div class="hammer" id="hammer-icon">&#x1F528;</div>
+              <div class="anvil-box" id="anvil-box">&#x2692;</div>
+            </div>
+            <div class="sword-art" id="my-sword-art">
+              <div class="sword-corner-tr"></div>
+              <div class="sword-corner-bl"></div>
+              <span class="sword-level-badge" id="my-sword-badge">Lv.0</span>
+            </div>
           </div>
-          <div class="sword-art" id="my-sword-art">
-            <span class="sword-level-badge" id="my-sword-badge">Lv.0</span>
+          <div class="dur-bar-wrap">
+            <div style="display:flex;align-items:center;gap:4px;">
+              <span style="font-family:'Galmuri7',monospace;font-size:8px;color:#aab2c0;">DUR</span>
+              <div class="dur-bar-bg" style="flex:1;"><div class="dur-bar" id="my-dur-bar"></div></div>
+              <span style="font-family:'Galmuri7',monospace;font-size:8px;color:#dde2ea;" id="my-dur">50</span>
+            </div>
           </div>
+          <!-- 상대 DUR (숨김 — JS에서 애니메이션에만 사용) -->
+          <div style="display:none;"><div class="dur-bar" id="opp-dur-bar"></div></div>
         </div>
-        <div class="dur-bar-wrap">
-          <div class="dur-bar-bg"><div class="dur-bar" id="my-dur-bar"></div></div>
+
+        <!-- 내 스탯 -->
+        <div class="my-stats">
+          <div class="level-rarity-row">
+            <span class="level-badge" id="my-level-badge">Lv.0</span>
+          </div>
+          <div class="atk-row">
+            <span class="atk-label">ATK</span>
+            <span class="atk-val" id="my-atk">0</span>
+          </div>
+          <div class="coins-row">
+            <div class="coin-gem"></div>
+            <span class="coins-val" id="my-coins">100</span>
+          </div>
+          <div class="combo-text" id="my-combo">콤보 0</div>
+          <div class="sell-preview" id="sell-preview"></div>
         </div>
-        <div class="stats-row">
-          <span id="my-atk">ATK 0</span>
-          <span id="my-dur">DUR 50</span>
-        </div>
-        <div class="coins-row">
-          <span class="gold-text" id="my-coins">💰 100</span>
-          <span class="combo-text" id="my-combo">콤보 0</span>
-        </div>
-        <div class="sell-preview" id="sell-preview"></div>
+
+        <!-- 강화/판매 버튼 -->
         <div class="action-btns">
           <div class="enhance-wrap">
-            <button id="btn-enhance" class="btn-primary">강화</button>
+            <button id="btn-enhance" class="btn-primary">
+              강화
+              <span style="font-family:'Galmuri7',monospace;font-size:8px;color:#5a2f0c;margin-top:2px;">두드려 강화하기</span>
+            </button>
             <div class="enhance-cooldown" id="enhance-cooldown"></div>
           </div>
-          <button id="btn-sell" class="btn-accent">판매</button>
+          <button id="btn-sell" class="btn-accent">
+            판매
+          </button>
         </div>
-      </div>
 
-      <div class="vs-divider">VS</div>
+      </div><!-- /.my-side -->
 
-      <div class="player-side opp-side">
-        <div class="player-name" id="opp-name">상대방</div>
-        <div class="sword-art opp-sword-art" id="opp-sword-art">
-          <span class="sword-level-badge" id="opp-sword-badge">Lv.0</span>
-        </div>
-        <div class="dur-bar-wrap">
-          <div class="dur-bar-bg"><div class="dur-bar" id="opp-dur-bar"></div></div>
-        </div>
-        <div class="stats-row">
-          <span id="opp-atk">ATK 0</span>
-          <span id="opp-dur">DUR 50</span>
-        </div>
-      </div>
-    </div>
+    </div><!-- /.game-arena -->
 
     <div class="damage-overlay" id="damage-overlay"></div>
-    <div class="hand-bar" id="hand-bar"></div>
-  </div>
+
+    <!-- 손패 바 -->
+    <div style="background:linear-gradient(#2c2832,#211d27);border-top:2px solid #07070a;box-shadow:inset 0 2px 0 rgba(255,255,255,.05);padding:6px 10px 8px;flex-shrink:0;">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;">
+        <span style="font-family:'Galmuri7',monospace;font-size:9px;color:var(--gold);letter-spacing:1px;">내 손패</span>
+        <div style="flex:1;height:1px;background:rgba(255,255,255,.06);"></div>
+        <span style="font-family:'Galmuri7',monospace;font-size:8px;color:var(--text-dim);">카드를 클릭해 사용</span>
+      </div>
+      <div class="hand-bar" id="hand-bar" style="border:none;padding:0;background:none;min-height:82px;"></div>
+    </div>
+
+  </div><!-- /#screen-game -->
 
   <!-- 상점 화면 -->
   <div id="screen-shop" class="screen">
     <div class="shop-container">
       <div class="shop-header">
         <span id="shop-my-name" class="shop-player-name">나</span>
-        <span id="shop-round-label">라운드 종료</span>
-        <span id="shop-opp-name" class="shop-player-name">상대방</span>
+        <span id="shop-round-label" style="font-family:'Galmuri7',monospace;font-size:9px;color:var(--text-dim);">라운드 종료</span>
         <div class="timer-bar-bg"><div class="timer-bar" id="shop-timer-bar"></div></div>
-        <span id="shop-timer-text">20</span>
-        <span class="gold-text" id="shop-coins">💰 0</span>
+        <span id="shop-timer-text" style="font-family:'Galmuri7',monospace;font-size:9px;color:#5fd6c4;">20</span>
+        <div class="coin-gem"></div>
+        <span class="gold-text" style="font-family:'Galmuri11',sans-serif;font-size:13px;" id="shop-coins">0</span>
+        <span id="shop-opp-name" class="shop-player-name" style="margin-left:auto;">상대방</span>
       </div>
-      <h3 class="shop-title">⚒ 카드 상점</h3>
-      <div class="shop-shelf" id="shop-shelf"></div>
-      <div class="shop-hand-label">내 손패</div>
-      <div class="hand-bar" id="shop-hand-bar"></div>
+
+      <div style="background:var(--panel2);border:2px solid #07070a;box-shadow:inset 0 0 0 2px #3a3946,0 5px 0 rgba(0,0,0,.4);padding:12px 16px;display:flex;flex-direction:column;gap:10px;">
+        <div class="shop-title-row">
+          <span style="color:var(--accent);">✦</span>
+          <span class="shop-title">카드 상점</span>
+          <span style="color:var(--accent);">✦</span>
+        </div>
+        <div class="shop-controls">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div class="shop-level-info">
+              <span class="shop-level-label">상점 등급</span>
+              <span class="shop-level-val" id="shop-level-display">Lv.1</span>
+            </div>
+            <button id="btn-upg-shop" class="btn-shop-upg">레벨업 ⬆<br><span style="font-size:8px;">300코인</span></button>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button id="btn-shop-reroll" class="btn-shop-reroll">리롤 ⟳<br><span style="font-size:8px;">2코인</span></button>
+            <button id="btn-shop-freeze" class="btn-shop-freeze">❄ 얼리기<br><span style="font-size:8px;">2회 남음</span></button>
+          </div>
+        </div>
+        <div class="shop-shelf" id="shop-shelf"></div>
+        <div style="display:flex;flex-direction:column;gap:3px;">
+          <div style="display:flex;justify-content:space-between;font-family:'Galmuri7',monospace;font-size:9px;color:#5fd6c4;">
+            <span>다음 라운드까지</span><span id="shop-timer-text2">20s</span>
+          </div>
+          <div class="timer-bar-bg" style="height:9px;"><div class="timer-bar" id="shop-timer-bar2"></div></div>
+        </div>
+      </div>
+
+      <div style="background:linear-gradient(#2c2832,#211d27);border:2px solid #07070a;box-shadow:inset 0 2px 0 rgba(255,255,255,.05);padding:6px 10px 8px;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;">
+          <span style="font-family:'Galmuri11',sans-serif;font-size:12px;color:#fff3e2;" id="shop-hand-owner">손패</span>
+          <span style="font-family:'Galmuri7',monospace;font-size:8px;color:var(--accent);" id="shop-hand-count">0 / 8</span>
+          <div style="flex:1;height:1px;background:rgba(255,255,255,.06);"></div>
+          <div class="coin-gem"></div>
+          <span style="font-family:'Galmuri11',sans-serif;font-size:12px;color:var(--gold);" id="shop-coins2">0 코인</span>
+        </div>
+        <div class="hand-bar" id="shop-hand-bar" style="border:none;padding:0;background:none;min-height:82px;"></div>
+      </div>
     </div>
   </div>
 
@@ -139,7 +274,7 @@
         <p>최종 라운드: <span id="result-round">-</span></p>
         <p>획득한 돈: <span class="gold-text" id="result-money">0원</span></p>
       </div>
-      <button id="btn-back-menu" class="btn-primary">메인 메뉴로</button>
+      <button id="btn-back-menu" class="btn-primary" style="font-size:14px;height:44px;">메인 메뉴로</button>
     </div>
   </div>
 
