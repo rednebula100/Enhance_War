@@ -111,6 +111,85 @@
     document.getElementById('opp-dur').textContent = `DUR ${50 + level * 15}`;
   }
 
+  // ── 시각 효과 ─────────────────────────────────
+  function _getSwordPos() {
+    const r = document.getElementById('my-sword-art').getBoundingClientRect();
+    return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+  }
+
+  function _spawnParticles(x, y, count, colors) {
+    for (let i = 0; i < count; i++) {
+      const p = document.createElement('div');
+      p.className = 'particle';
+      const angle = (Math.PI * 2 * i / count) + (Math.random() - 0.5) * 0.8;
+      const dist  = 35 + Math.random() * 55;
+      p.style.cssText =
+        `left:${x}px;top:${y}px;` +
+        `background:${colors[i % colors.length]};` +
+        `--dx:${(Math.cos(angle) * dist).toFixed(1)}px;` +
+        `--dy:${(Math.sin(angle) * dist).toFixed(1)}px`;
+      document.body.appendChild(p);
+      p.addEventListener('animationend', () => p.remove(), { once: true });
+    }
+  }
+
+  function _screenShake(intensity) {
+    const el = document.querySelector('.game-arena');
+    if (!el) return;
+    const cls = intensity >= 2 ? 'shake-lg' : 'shake-sm';
+    el.classList.remove('shake-sm', 'shake-lg');
+    void el.offsetWidth;
+    el.classList.add(cls);
+    el.addEventListener('animationend', () => el.classList.remove(cls), { once: true });
+  }
+
+  function _playSuccessEffect(combo) {
+    const count  = Math.min(6 + combo * 2, 22);
+    const colors = combo >= 5
+      ? ['#f0c040','#ff9800','#f44336','#ffffff']
+      : ['#f0c040','#f0c040','#e0d0b0'];
+    const { x, y } = _getSwordPos();
+    _spawnParticles(x, y, count, colors);
+    _screenShake(combo >= 5 ? 2 : 1);
+  }
+
+  function _playFailEffect() {
+    const flash = document.createElement('div');
+    flash.className = 'flash-red';
+    document.body.appendChild(flash);
+    flash.addEventListener('animationend', () => flash.remove(), { once: true });
+    const sword = document.getElementById('my-sword-art');
+    sword.classList.remove('sword-break');
+    void sword.offsetWidth;
+    sword.classList.add('sword-break');
+    sword.addEventListener('animationend', () => sword.classList.remove('sword-break'), { once: true });
+  }
+
+  function _playSellEffect(gained) {
+    const { x, y } = _getSwordPos();
+    const colors = ['#f0c040','#ffd700','#ffaa00'];
+    for (let i = 0; i < 14; i++) {
+      const p = document.createElement('div');
+      p.className = 'particle';
+      const angle = -Math.PI / 2 + (Math.random() - 0.5) * Math.PI * 1.4;
+      const dist  = 40 + Math.random() * 65;
+      p.style.cssText =
+        `left:${x}px;top:${y}px;` +
+        `background:${colors[i % colors.length]};` +
+        `--dx:${(Math.cos(angle) * dist).toFixed(1)}px;` +
+        `--dy:${(Math.sin(angle) * dist).toFixed(1)}px`;
+      document.body.appendChild(p);
+      p.addEventListener('animationend', () => p.remove(), { once: true });
+    }
+    const txt = document.createElement('div');
+    txt.className = 'float-text';
+    txt.textContent = '+' + Math.floor(gained) + ' 코인';
+    txt.style.left = x + 'px';
+    txt.style.top  = y + 'px';
+    document.body.appendChild(txt);
+    txt.addEventListener('animationend', () => txt.remove(), { once: true });
+  }
+
   // ── Socket 이벤트 핸들러 ──────────────────────
   function onMatchFound({ opponentName, myState, opponentState }) {
     document.getElementById('my-name').textContent = window.myDisplayName || '나';
@@ -137,11 +216,14 @@
   function onEnhanceResult({ success, level, combo, coins, hand }) {
     _updateMyState({ level, combo, coins });
     if (hand) _updateHand(hand, 'hand-bar');
+    if (success) _playSuccessEffect(combo);
+    else         _playFailEffect();
   }
 
-  function onSellResult({ coins, hand }) {
+  function onSellResult({ gained, coins, hand }) {
     _updateMyState({ level: 0, combo: 0, coins });
     if (hand) _updateHand(hand, 'hand-bar');
+    _playSellEffect(gained ?? 0);
   }
 
   function onOpponentUpdate({ level, atk }) {
