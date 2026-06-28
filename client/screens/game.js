@@ -124,10 +124,10 @@
 
     const lb = document.getElementById('my-level-badge');   if (lb) lb.textContent = `Lv.${state.myLevel}`;
     const sb = document.getElementById('my-sword-badge');   if (sb) sb.textContent = `Lv.${state.myLevel}`;
-    const atk = document.getElementById('my-atk');          if (atk) atk.textContent = state.myLevel * 10;
-    const dur = document.getElementById('my-dur');          if (dur) dur.textContent = 50 + state.myLevel * 15;
-    const coins = document.getElementById('my-coins');      if (coins) coins.textContent = Math.floor(state.myCoins);
-    const combo = document.getElementById('my-combo');      if (combo) combo.textContent = `콤보 ${state.myCombo}`;
+    const atkEl = document.getElementById('my-atk');        if (atkEl) atkEl.textContent = state.myLevel * 10;
+    const durEl = document.getElementById('my-dur');        if (durEl) durEl.textContent = 50 + state.myLevel * 15;
+    const coinsEl = document.getElementById('my-coins');    if (coinsEl) coinsEl.textContent = Math.floor(state.myCoins);
+    const comboEl = document.getElementById('my-combo');    if (comboEl) comboEl.textContent = `콤보 ${state.myCombo}`;
 
     const sellVal = Math.floor(state.myLevel * 50 * (1 + state.myCombo * 0.15));
     const sp = document.getElementById('sell-preview');
