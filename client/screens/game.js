@@ -121,6 +121,81 @@
     document.getElementById('opp-dur').textContent = `DUR ${50 + level * 15}`;
   }
 
+  // ── 전투 애니메이션 유틸리티 ─────────────────────────────────────────
+  function _wait(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+  function _setDurBar(who, current, initial) {
+    const bar = document.getElementById(`${who}-dur-bar`);
+    if (!bar || !initial) return;
+    const pct = Math.max(0, (current / initial) * 100);
+    bar.style.width = pct + '%';
+    bar.style.background = pct > 50 ? 'var(--hp-green)' : pct > 25 ? '#ff9800' : 'var(--danger)';
+  }
+
+  async function _playCombatAnimation(hits, myInitDur, oppInitDur, damageTaken, myHp, oppHp) {
+    const mySword  = document.getElementById('my-sword-art');
+    const oppSword = document.getElementById('opp-sword-art');
+    const vsEl     = document.querySelector('.vs-divider');
+
+    _setDurBar('my',  myInitDur,  myInitDur);
+    _setDurBar('opp', oppInitDur, oppInitDur);
+
+    if (hits.length === 0) {
+      if (damageTaken > 0) {
+        _screenShake(1);
+        _flashDamage(`-${Math.round(damageTaken)} HP`);
+        await _wait(500);
+        _updateHp(myHp, oppHp);
+      }
+      return;
+    }
+
+    await _wait(250);
+
+    let interval = 400;
+    for (let i = 0; i < hits.length; i++) {
+      const hit = hits[i];
+
+      mySword.classList.add('sword-bump-right');
+      oppSword.classList.add('sword-bump-left');
+      const bumpDur = Math.min(Math.floor(interval * 0.4), 150);
+      setTimeout(() => {
+        mySword.classList.remove('sword-bump-right');
+        oppSword.classList.remove('sword-bump-left');
+      }, bumpDur);
+
+      if (vsEl) {
+        const r = vsEl.getBoundingClientRect();
+        _spawnParticles(r.left + r.width / 2, r.top + r.height / 2, 4,
+          ['#ffffff', '#ffee58', '#ffa726']);
+      }
+
+      _setDurBar('my',  hit.myDurAfter,  myInitDur);
+      _setDurBar('opp', hit.oppDurAfter, oppInitDur);
+
+      if (i >= 9) interval = Math.max(80, Math.round(interval * 0.9));
+      if (i < hits.length - 1) await _wait(interval);
+    }
+
+    const last = hits[hits.length - 1];
+    await _wait(150);
+    if (last.myDurAfter <= 0 && last.oppDurAfter <= 0) {
+      mySword.classList.add('sword-break-gray'); oppSword.classList.add('sword-break-gray');
+    } else if (last.myDurAfter <= 0) {
+      mySword.classList.add('sword-break-gray');
+    } else if (last.oppDurAfter <= 0) {
+      oppSword.classList.add('sword-break-gray');
+    }
+
+    await _wait(550);
+    _updateHp(myHp, oppHp);
+    if (damageTaken > 0) { _screenShake(1); _flashDamage(`-${Math.round(damageTaken)} HP`); }
+
+    setTimeout(() => {
+      mySword.classList.remove('sword-break', 'sword-break-gray');
+      oppSword.classList.remove('sword-break', 'sword-break-gray');
+    }, 1200);
+  }
   // ── 시각 효과 ─────────────────────────────────
   function _getSwordPos() {
     const r = document.getElementById('my-sword-art').getBoundingClientRect();
@@ -200,6 +275,15 @@
     txt.addEventListener('animationend', () => txt.remove(), { once: true });
   }
 
+  function _playAnvilHit() {
+    const hammer = document.getElementById('hammer-icon');
+    if (!hammer) return;
+    hammer.classList.remove('hammer-strike');
+    void hammer.offsetWidth;
+    hammer.classList.add('hammer-strike');
+    hammer.addEventListener('animationend', () => hammer.classList.remove('hammer-strike'), { once: true });
+  }
+
   // ── Socket 이벤트 핸들러 ──────────────────────
   function onMatchFound({ opponentName, myState, opponentState }) {
     document.getElementById('my-name').textContent = window.myDisplayName || '나';
@@ -226,6 +310,7 @@
   function onEnhanceResult({ success, level, combo, coins, hand }) {
     _updateMyState({ level, combo, coins });
     if (hand) _updateHand(hand, 'hand-bar');
+    _playAnvilHit();
     if (success) _playSuccessEffect(combo);
     else         _playFailEffect();
   }
@@ -240,13 +325,15 @@
     _updateOppState({ level, atk });
   }
 
-  function onRoundEnd({ myHp, opponentHp, damageTaken }) {
+  async function onRoundEnd({ myHp, opponentHp, damageTaken, hits, myInitDur, oppInitDur }) {
     clearInterval(timerInterval);
     document.getElementById('btn-enhance').disabled = true;
     document.getElementById('btn-sell').disabled = true;
-    _updateHp(myHp, opponentHp);
     state.myHp = myHp; state.oppHp = opponentHp;
-    if (damageTaken > 0) _flashDamage(`-${Math.round(damageTaken)} HP`);
+    await _playCombatAnimation(
+      hits ?? [], myInitDur ?? 0, oppInitDur ?? 0,
+      damageTaken, myHp, opponentHp
+    );
   }
 
   function onUseCardResult({ cardId, hand, coins }) {

@@ -494,12 +494,29 @@ class GameRoom {
     this.swords[0].invincible = false;
     this.swords[1].invincible = false;
 
+    // 전투 애니메이션용 타격 배열 — 매 tick마다 양쪽 내구도 스냅샷
+    const combatHits = [];
+    if ((atk0 > 0 || atk1 > 0) && this.zeroAtkStreak < GAME_CONFIG.ZERO_ATK_STALEMATE_ROUNDS) {
+      let d0 = dur0, d1 = dur1, guard = 0;
+      while (guard++ < 500) {
+        d0 -= atk1;
+        d1 -= atk0;
+        combatHits.push({ dur0After: Math.max(0, Math.round(d0)), dur1After: Math.max(0, Math.round(d1)) });
+        if (d0 <= 0 || d1 <= 0) break;
+      }
+    }
+
     [0, 1].forEach(i => {
       this._emit(i, 'round_end', {
         round: this.round,
         myHp: this.swords[i].hp,
         opponentHp: this.swords[1 - i].hp,
         damageTaken: i === 0 ? dmg0 : dmg1,
+        myInitDur:  Math.round(i === 0 ? dur0 : dur1),
+        oppInitDur: Math.round(i === 0 ? dur1 : dur0),
+        hits: combatHits.map(h => i === 0
+          ? { myDurAfter: h.dur0After, oppDurAfter: h.dur1After }
+          : { myDurAfter: h.dur1After, oppDurAfter: h.dur0After }),
       });
     });
 

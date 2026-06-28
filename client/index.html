@@ -62,8 +62,17 @@
     <div class="game-arena">
       <div class="player-side my-side">
         <div class="player-name" id="my-name">나</div>
-        <div class="sword-art" id="my-sword-art">
-          <span class="sword-level-badge" id="my-sword-badge">Lv.0</span>
+        <div class="sword-area">
+          <div class="anvil-wrap">
+            <div class="hammer" id="hammer-icon" title="망치">&#x1F528;</div>
+            <div class="anvil-box" id="anvil-box">&#x2692;</div>
+          </div>
+          <div class="sword-art" id="my-sword-art">
+            <span class="sword-level-badge" id="my-sword-badge">Lv.0</span>
+          </div>
+        </div>
+        <div class="dur-bar-wrap">
+          <div class="dur-bar-bg"><div class="dur-bar" id="my-dur-bar"></div></div>
         </div>
         <div class="stats-row">
           <span id="my-atk">ATK 0</span>
@@ -86,6 +95,9 @@
         <div class="player-name" id="opp-name">상대방</div>
         <div class="sword-art opp-sword-art" id="opp-sword-art">
           <span class="sword-level-badge" id="opp-sword-badge">Lv.0</span>
+        </div>
+        <div class="dur-bar-wrap">
+          <div class="dur-bar-bg"><div class="dur-bar" id="opp-dur-bar"></div></div>
         </div>
         <div class="stats-row">
           <span id="opp-atk">ATK 0</span>
