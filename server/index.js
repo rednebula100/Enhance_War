@@ -8,6 +8,7 @@ const { joinQueue, leaveQueue } = require('./matchmaker');
 const GameRoom = require('./GameRoom');
 
 const app = express();
+app.use((_req, res, next) => { res.setHeader('Cross-Origin-Opener-Policy', 'same-origin-allow-popups'); next(); });
 app.use(express.static(path.join(__dirname, '../client')));
 const httpServer = createServer(app);
 const io = new Server(httpServer, { cors: { origin: '*' } });
