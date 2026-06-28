@@ -117,10 +117,10 @@ class GameRoom {
     this.swords = [
       { hp: GAME_CONFIG.PLAYER_HP, coins: GAME_CONFIG.STARTING_COINS, level: 0, combo: 0, hand: [],
         shopLevel: 1, lastEnhanceMs: 0, insuranceActive: false, slowDebuffExpiry: 0,
-        crackedDebuff: false, invincible: false, godSword: false },
+        crackedPenalty: 0, invincible: false, godSword: false },
       { hp: GAME_CONFIG.PLAYER_HP, coins: GAME_CONFIG.STARTING_COINS, level: 0, combo: 0, hand: [],
         shopLevel: 1, lastEnhanceMs: 0, insuranceActive: false, slowDebuffExpiry: 0,
-        crackedDebuff: false, invincible: false, godSword: false },
+        crackedPenalty: 0, invincible: false, godSword: false },
     ];
     this.round = 0;
     this.phase = null;
@@ -158,15 +158,12 @@ class GameRoom {
     if (this.phase !== 'SHOP') return;
     const sword = this.swords[playerIdx];
 
-    if (sword.hand.length >= GAME_CONFIG.HAND_MAX) {
-      return this._emit(playerIdx, 'buy_card_result', { success: false, reason: 'HAND_FULL' });
-    }
     const card = CARD_POOL.find(c => c.id === cardId);
     if (!card || sword.coins < card.cost) {
       return this._emit(playerIdx, 'buy_card_result', { success: false, reason: 'INSUFFICIENT_COINS' });
     }
 
-    // levelable 카드 중복 구매 → 흡수 + XP
+    // levelable 중복 흡수는 슬롯 불필요 → HAND_FULL 체크 전
     if (card.levelable) {
       const existing = sword.hand.find(c => c.id === cardId);
       if (existing) {
@@ -186,6 +183,10 @@ class GameRoom {
       }
     }
 
+    // 새 카드 추가: 슬롯 필요
+    if (sword.hand.length >= GAME_CONFIG.HAND_MAX) {
+      return this._emit(playerIdx, 'buy_card_result', { success: false, reason: 'HAND_FULL' });
+    }
     sword.coins -= card.cost;
     sword.hand.push({ ...card, xp: 0, xpLevel: 1 });
 
@@ -223,13 +224,13 @@ class GameRoom {
     let notify = null; // 상대에게 보낼 이벤트
 
     switch (cardId) {
-      case 'c020': // 균열: 상대 다음 강화 성공률 -10%p
-        opp.crackedDebuff = true;
+      case 'c020': // 균열: 상대 다음 강화 성공률 -10%p (c007 있으면 -5%p)
+        opp.crackedPenalty = 0.10 * debuffScale;
         notify = { event: 'card_effect', data: { effect: 'cracked', value: 0.10 * debuffScale } };
         break;
-      case 'c021': // 저주의 망치: 상대 쿨타임 +1초 (3초간)
-        opp.slowDebuffExpiry = Date.now() + 3000;
-        notify = { event: 'card_effect', data: { effect: 'slow', durationMs: 3000 } };
+      case 'c021': // 저주의 망치: 상대 쿨타임 +1초, 지속 3초 (c007 있으면 1.5초)
+        opp.slowDebuffExpiry = Date.now() + Math.round(3000 * debuffScale);
+        notify = { event: 'card_effect', data: { effect: 'slow', durationMs: Math.round(3000 * debuffScale) } };
         break;
       case 'c022': // 소매치기: 상대 코인 10% 훔침
         const steal = Math.floor(opp.coins * 0.10 * debuffScale);
@@ -311,7 +312,7 @@ class GameRoom {
         case 'c007': break;                                                // 냉기 갑주 (액티브 카드 효과에서 처리)
         case 'c008': m.successRateBonus += sword.combo * 0.015; break;    // 노련한 감각
         case 'c010': m.costMul *= 1.05;                                    // 탐욕의 표식
-                     m.onSuccessCoinBonus += enhanceCost(sword.level) * 0.05 * m.costMul; break;
+                     m.onSuccessCoinBonus += enhanceCost(sword.level) * 0.05; break;
         case 'c011': m.sellMul *= (1 + sword.level * 0.05); break;        // 단조의 정수
         case 'c012': m.keepComboOnFail = true; break;                     // 불굴의 의지
         case 'c013': m.sellMul *= 1.15; break;                            // 환전상
@@ -406,8 +407,8 @@ class GameRoom {
     // c005 끈기: 실패 시 환불 위해 미리 차감, 실패면 되돌림
     sword.coins -= cost;
 
-    const crackedPenalty = sword.crackedDebuff ? -0.10 : 0;
-    sword.crackedDebuff = false;
+    const crackedPenalty = -(sword.crackedPenalty ?? 0);
+    sword.crackedPenalty = 0;
     const rawRate = enhanceSuccessRate(sword.level) + m.successRateBonus + crackedPenalty;
     const success = Math.random() < Math.max(0, Math.min(1, rawRate));
 
@@ -497,7 +498,7 @@ class GameRoom {
   _drawShopCards(shopLv) {
     const cfg = GAME_CONFIG.SHOP_LEVEL_CONFIG[shopLv];
     const maxR = cfg ? cfg.maxRarity : 2;
-    const minR = shopLv >= 4 ? 2 : 1;
+    const minR = shopLv >= 6 ? 3 : (shopLv >= 4 ? 2 : 1);
     const pool = CARD_POOL.filter(c => c.rarity >= minR && c.rarity <= maxR);
     if (shopLv < 6) {
       return pool.sort(() => Math.random() - 0.5).slice(0, GAME_CONFIG.SHOP_CARD_COUNT);

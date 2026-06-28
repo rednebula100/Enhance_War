@@ -10,6 +10,22 @@
   let shopLevel = 1;
   const SHOP_UPGRADE_COSTS = [null, 300, 600, 1000, 1600, 2500, null];
 
+  function _showToast(msg) {
+    let t = document.getElementById('shop-toast');
+    if (!t) {
+      t = document.createElement('div');
+      t.id = 'shop-toast';
+      t.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);' +
+        'background:rgba(0,0,0,.85);color:#fff;padding:8px 18px;border-radius:6px;' +
+        'font-size:13px;z-index:999;pointer-events:none;transition:opacity .3s;';
+      document.body.appendChild(t);
+    }
+    t.textContent = msg;
+    t.style.opacity = '1';
+    clearTimeout(t._tid);
+    t._tid = setTimeout(() => { t.style.opacity = '0'; }, 2000);
+  }
+
   function onShopStart({ timeLeft, cards, myState }) {
     currentCoins = myState?.coins ?? currentCoins;
     hand = myState?.hand ?? hand;
@@ -90,8 +106,14 @@
     }
   }
 
-  function onBuyCardResult({ success, absorbed, leveled, coins, hand: newHand }) {
-    if (!success) return;
+  function onBuyCardResult({ success, absorbed, leveled, coins, hand: newHand, reason }) {
+    if (!success) {
+      const msg = reason === 'HAND_FULL'           ? '손패가 꽉 찼습니다 (최대 8장)'
+                : reason === 'INSUFFICIENT_COINS'  ? '코인이 부족합니다'
+                : '구매할 수 없습니다';
+      _showToast(msg);
+      return;
+    }
     currentCoins = coins;
     hand = newHand;
     document.getElementById('shop-coins').textContent = `💰 ${Math.floor(currentCoins)}`;
