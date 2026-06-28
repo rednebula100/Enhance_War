@@ -178,9 +178,11 @@ class GameRoom {
         const newLv = thresholds.findIndex(t => (existing.xp || 0) < t);
         existing.xpLevel = newLv === -1 ? 3 : Math.max(1, newLv);
         const leveled = existing.xpLevel > prevLv;
+        if (sword.shopCards) sword.shopCards = sword.shopCards.filter(c => c.id !== cardId);
         this._emit(playerIdx, 'buy_card_result', {
           success: true, absorbed: true, cardId,
           coins: sword.coins, hand: sword.hand, leveled,
+          cards: sword.shopCards ?? [],
         });
         return;
       }
@@ -193,8 +195,10 @@ class GameRoom {
     sword.coins -= card.cost;
     sword.hand.push({ ...card, xp: 0, xpLevel: 1 });
 
+    if (sword.shopCards) sword.shopCards = sword.shopCards.filter(c => c.id !== cardId);
     this._emit(playerIdx, 'buy_card_result', {
       success: true, cardId, coins: sword.coins, hand: sword.hand,
+      cards: sword.shopCards ?? [],
     });
   }
 
@@ -381,6 +385,7 @@ class GameRoom {
         timeLeft: GAME_CONFIG.ROUND_DURATION_MS / 1000,
         myState: { ...this.swords[i], hand: [...this.swords[i].hand] },
         opponentState: this._publicSwordState(1 - i),
+        cooldownMs: this._enhanceCooldown(i),
       });
     });
 
@@ -430,6 +435,7 @@ class GameRoom {
 
     this._emit(idx, 'enhance_result', {
       success, level: sword.level, combo: sword.combo, coins: sword.coins,
+      cooldownMs: this._enhanceCooldown(idx),
     });
     // 상대에게 실시간 브로드캐스트 (거울 UI 핵심 텐션)
     this._emit(1 - idx, 'opponent_update', {
@@ -520,10 +526,23 @@ class GameRoom {
       });
     });
 
+    // 클라이언트 _playCombatAnimation과 동일 공식으로 총 재생 시간 계산
+    let animMs = 0;
+    if (combatHits.length > 0) {
+      animMs = 250; // 선딜
+      let cInterval = 400;
+      for (let ci = 0; ci < combatHits.length; ci++) {
+        if (ci >= 9) cInterval = Math.max(80, Math.round(cInterval * 0.9));
+        if (ci < combatHits.length - 1) animMs += cInterval;
+      }
+      animMs += 700; // _wait(150) + _wait(550)
+    }
+    const shopDelay = Math.max(800, animMs + 300);
+
     if (this.swords[0].hp <= 0 || this.swords[1].hp <= 0) {
       this._endMatch();
     } else {
-      this.timer = setTimeout(() => this._startShop(), 500);
+      this.timer = setTimeout(() => this._startShop(), shopDelay);
     }
   }
 
@@ -555,6 +574,7 @@ class GameRoom {
     this.phase = 'SHOP';
     [0, 1].forEach(i => {
       const shopCards = this._drawShopCards(this.swords[i].shopLevel);
+      this.swords[i].shopCards = [...shopCards]; // 진열대 상태 저장 (구매 시 갱신)
       this._emit(i, 'shop_start', {
         timeLeft: GAME_CONFIG.SHOP_DURATION_MS / 1000,
         cards: shopCards,

@@ -32,6 +32,10 @@
     shopLevel = myState?.shopLevel ?? shopLevel;
 
     document.getElementById('shop-coins').textContent = `💰 ${Math.floor(currentCoins)}`;
+    const myNameEl = document.getElementById('shop-my-name');
+    const oppNameEl = document.getElementById('shop-opp-name');
+    if (myNameEl)  myNameEl.textContent  = window.myDisplayName  || '나';
+    if (oppNameEl) oppNameEl.textContent = window.oppDisplayName || '상대방';
     _startShopTimer(timeLeft);
     _renderShelf(cards);
     _renderHand();
@@ -73,7 +77,9 @@
     cards.forEach(card => {
       const el = document.createElement('div');
       el.className = `shop-card rarity-${card.rarity}`;
+      const iconBg1 = ['','#888','#4caf50','#2196f3','#9c27b0','#f44336','#ff9800','#f0c040'][card.rarity] || '#888';
       el.innerHTML = `
+        <div class="card-icon-box" style="background:${iconBg1}"></div>
         <div class="card-rarity-label">${'★'.repeat(card.rarity)}</div>
         <div class="card-name">${card.name}</div>
         <div class="card-desc">${card.description ?? ''}</div>
@@ -93,7 +99,8 @@
       const card = hand[i];
       slot.className = card ? `hand-slot filled rarity-${card.rarity}` : 'hand-slot';
       if (card) {
-        slot.innerHTML = `<span class="card-rarity-label">${'★'.repeat(card.rarity)}</span><span class="card-name">${card.name}</span>`;
+        const iconBg2 = ['','#888','#4caf50','#2196f3','#9c27b0','#f44336','#ff9800','#f0c040'][card.rarity] || '#888';
+        slot.innerHTML = `<div class="card-icon-box" style="background:${iconBg2}"></div><span class="card-rarity-label">${'★'.repeat(card.rarity)}</span><span class="card-name">${card.name}</span>`;
         slot.title = `${card.name}\n${card.description ?? ''}\n\n클릭하여 판매 (+${card.sellPrice ?? Math.floor(card.cost * 0.5)}코인)`;
         slot.addEventListener('click', () => {
           const sp = card.sellPrice ?? Math.floor(card.cost * 0.5);
@@ -118,6 +125,7 @@
     hand = newHand;
     document.getElementById('shop-coins').textContent = `💰 ${Math.floor(currentCoins)}`;
     _renderHand();
+    if (cards) _renderShelf(cards);
     if (absorbed) {
       const msg = leveled ? '카드 레벨 업! 효과가 강화되었습니다.' : '카드 흡수 완료 (XP 획득)';
       const el = document.getElementById('shop-coins');
@@ -135,6 +143,7 @@
     hand = newHand;
     document.getElementById('shop-coins').textContent = `💰 ${Math.floor(currentCoins)}`;
     _renderHand();
+    if (cards) _renderShelf(cards);
   }
 
     function onUpgradeResult({ success, shopLevel: newLv, coins, cards }) {

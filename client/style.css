@@ -138,20 +138,23 @@ body {
 
 .game-arena {
   display: flex;
+  flex-direction: column;
   flex: 1;
   overflow: hidden;
 }
 .player-side {
-  flex: 1; display: flex; flex-direction: column;
+  flex: 1; display: flex; flex-direction: row;
   align-items: center; justify-content: center;
-  gap: 10px; padding: 16px;
+  gap: 16px; padding: 10px 16px;
+  width: 100%;
 }
-.opp-side { background: rgba(0,0,0,0.1); }
+.opp-side { background: rgba(0,0,0,0.1); order: 1; }
+.my-side { order: 3; }
 .player-name { font-size: 12px; color: var(--text-dim); }
 
 /* 검 placeholder — Piskel 이미지 준비 시 내부에 <img> 삽입 */
 .sword-art {
-  width: 90px; height: 150px;
+  width: 180px; height: 300px;
   background: var(--panel);
   border: 2px solid var(--accent);
   display: flex; align-items: flex-end; justify-content: center;
@@ -174,8 +177,11 @@ body {
 
 .vs-divider {
   display: flex; align-items: center; justify-content: center;
-  width: 40px; font-size: 11px; color: var(--text-dim);
-  background: var(--panel); border-left: 1px solid var(--border); border-right: 1px solid var(--border);
+  order: 2;
+  height: 28px; width: 100%;
+  font-size: 11px; color: var(--text-dim);
+  background: var(--panel);
+  border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
 }
 
 /* 데미지 오버레이 */
@@ -445,3 +451,34 @@ body {
   100% { transform: translateY(-6px) rotate(-20deg); }
 }
 .hammer.hammer-strike { animation: hammer-strike 0.24s ease-in-out; }
+/* ── 강화 쿨타임 바 ──────────────────────────────────── */
+.enhance-wrap { position: relative; width: 100%; }
+.enhance-cooldown {
+  position: absolute; bottom: 0; left: 0;
+  height: 3px; width: 0%;
+  background: var(--accent-light);
+  border-radius: 0 0 4px 4px;
+  pointer-events: none;
+}
+
+/* ── 카드 아이콘 placeholder ─────────────────────────── */
+.card-icon-box {
+  width: 38px; height: 38px;
+  border-radius: 4px;
+  margin: 0 auto 3px;
+  border: 1px solid rgba(255,255,255,0.15);
+  flex-shrink: 0;
+}
+
+/* ── 상점 닉네임 ──────────────────────────────────────── */
+.shop-player-name {
+  font-size: 12px; color: var(--text-dim);
+  font-weight: bold;
+}
+
+/* ── 상하 구도: player-side 내부 stat 열 ─────────────── */
+.player-stats-col {
+  display: flex; flex-direction: column;
+  align-items: flex-start; gap: 6px;
+  flex: 1;
+}

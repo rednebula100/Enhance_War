@@ -84,7 +84,10 @@
         </div>
         <div class="sell-preview" id="sell-preview"></div>
         <div class="action-btns">
-          <button id="btn-enhance" class="btn-primary">강화</button>
+          <div class="enhance-wrap">
+            <button id="btn-enhance" class="btn-primary">강화</button>
+            <div class="enhance-cooldown" id="enhance-cooldown"></div>
+          </div>
           <button id="btn-sell" class="btn-accent">판매</button>
         </div>
       </div>
@@ -114,7 +117,9 @@
   <div id="screen-shop" class="screen">
     <div class="shop-container">
       <div class="shop-header">
+        <span id="shop-my-name" class="shop-player-name">나</span>
         <span id="shop-round-label">라운드 종료</span>
+        <span id="shop-opp-name" class="shop-player-name">상대방</span>
         <div class="timer-bar-bg"><div class="timer-bar" id="shop-timer-bar"></div></div>
         <span id="shop-timer-text">20</span>
         <span class="gold-text" id="shop-coins">💰 0</span>

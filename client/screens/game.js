@@ -42,7 +42,8 @@
       if (card) {
         slot.className = `hand-slot filled rarity-${card.rarity}`;
         const lvTag = card.xpLevel > 1 ? ` Lv${card.xpLevel}` : '';
-        slot.innerHTML = `<span class="card-rarity-label">${'★'.repeat(card.rarity)}</span><span class="card-name">${card.name}${lvTag}</span>`;
+        const iconBg = ['','#888','#4caf50','#2196f3','#9c27b0','#f44336','#ff9800','#f0c040'][card.rarity] || '#888';
+        slot.innerHTML = `<div class="card-icon-box" style="background:${iconBg}"></div><span class="card-rarity-label">${'★'.repeat(card.rarity)}</span><span class="card-name">${card.name}${lvTag}</span>`;
         slot.title = card.description ?? '';
         if (card.type === 'active') {
           slot.classList.add('active-card');
@@ -122,6 +123,25 @@
   }
 
   // ── 전투 애니메이션 유틸리티 ─────────────────────────────────────────
+  let _cooldownTimer = null;
+  function _startCooldown(ms) {
+    const btn = document.getElementById('btn-enhance');
+    const bar = document.getElementById('enhance-cooldown');
+    if (!btn || !bar) return;
+    clearTimeout(_cooldownTimer);
+    btn.disabled = true;
+    bar.style.transition = 'none';
+    bar.style.width = '0%';
+    void bar.offsetWidth;
+    bar.style.transition = `width ${ms}ms linear`;
+    bar.style.width = '100%';
+    _cooldownTimer = setTimeout(() => {
+      btn.disabled = false;
+      bar.style.transition = 'none';
+      bar.style.width = '0%';
+    }, ms);
+  }
+
   function _wait(ms) { return new Promise(r => setTimeout(r, ms)); }
 
   function _setDurBar(who, current, initial) {
@@ -286,6 +306,7 @@
 
   // ── Socket 이벤트 핸들러 ──────────────────────
   function onMatchFound({ opponentName, myState, opponentState }) {
+    window.oppDisplayName = opponentName;
     document.getElementById('my-name').textContent = window.myDisplayName || '나';
     document.getElementById('opp-name').textContent = opponentName;
     state.myHp = 100; state.oppHp = 100;
@@ -295,9 +316,12 @@
     _buildHandSlots('hand-bar');
   }
 
-  function onRoundStart({ round, timeLeft, myState, opponentState }) {
+  function onRoundStart({ round, timeLeft, myState, opponentState, cooldownMs }) {
     document.getElementById('round-label').textContent = `Round ${round}`;
+    clearTimeout(_cooldownTimer);
     document.getElementById('btn-enhance').disabled = false;
+    const cdBar = document.getElementById('enhance-cooldown');
+    if (cdBar) { cdBar.style.transition = 'none'; cdBar.style.width = '0%'; }
     document.getElementById('btn-sell').disabled = false;
     _startTimer(timeLeft, 'timer-bar', 'timer-text');
     _updateMyState({ level: myState.level, combo: myState.combo, coins: myState.coins });
@@ -307,10 +331,11 @@
     _updateHand(myState.hand ?? [], 'hand-bar');
   }
 
-  function onEnhanceResult({ success, level, combo, coins, hand }) {
+  function onEnhanceResult({ success, level, combo, coins, hand, cooldownMs }) {
     _updateMyState({ level, combo, coins });
     if (hand) _updateHand(hand, 'hand-bar');
     _playAnvilHit();
+    if (cooldownMs) _startCooldown(cooldownMs);
     if (success) _playSuccessEffect(combo);
     else         _playFailEffect();
   }
