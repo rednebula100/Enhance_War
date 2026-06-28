@@ -87,6 +87,18 @@ io.on('connection', (socket) => {
     rooms.get(session.room)?.handleSellHandCard(session.playerIdx, cardId);
   });
 
+  socket.on('upgrade_shop', () => {
+    const session = sessions.get(socket.id);
+    if (!session?.room) return;
+    rooms.get(session.room)?.handleUpgradeShop(session.playerIdx);
+  });
+
+  socket.on('use_card', ({ cardId }) => {
+    const session = sessions.get(socket.id);
+    if (!session?.room) return;
+    rooms.get(session.room)?.handleUseCard(session.playerIdx, cardId);
+  });
+
   socket.on('disconnect', () => {
     const session = sessions.get(socket.id);
     if (!session) return;

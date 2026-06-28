@@ -7,9 +7,13 @@
     getSocket = socketGetter;
   }
 
+  let shopLevel = 1;
+  const SHOP_UPGRADE_COSTS = [null, 300, 600, 1000, 1600, 2500, null];
+
   function onShopStart({ timeLeft, cards, myState }) {
     currentCoins = myState?.coins ?? currentCoins;
     hand = myState?.hand ?? hand;
+    shopLevel = myState?.shopLevel ?? shopLevel;
 
     document.getElementById('shop-coins').textContent = `💰 ${Math.floor(currentCoins)}`;
     _startShopTimer(timeLeft);
@@ -34,13 +38,29 @@
 
   function _renderShelf(cards) {
     const shelf = document.getElementById('shop-shelf');
+    if (!shelf) return;
     shelf.innerHTML = '';
+
+    // 상점 레벨 + 업그레이드 버튼
+    const lvEl = document.createElement('div');
+    lvEl.style.cssText = 'grid-column:1/-1;text-align:right;font-size:11px;color:var(--text-dim);margin-bottom:4px;';
+    const upgCost = SHOP_UPGRADE_COSTS[shopLevel];
+    if (upgCost) {
+      lvEl.innerHTML = `상점 Lv${shopLevel} <button id="btn-upg-shop" style="margin-left:6px;font-size:10px;cursor:pointer;">Lv${shopLevel + 1}으로 업그레이드 (${upgCost}코인)</button>`;
+    } else {
+      lvEl.textContent = `상점 Lv${shopLevel} (최대)`;
+    }
+    shelf.appendChild(lvEl);
+    const upgBtn = shelf.querySelector('#btn-upg-shop');
+    if (upgBtn) upgBtn.addEventListener('click', () => getSocket()?.emit('upgrade_shop'));
+
     cards.forEach(card => {
       const el = document.createElement('div');
       el.className = `shop-card rarity-${card.rarity}`;
       el.innerHTML = `
         <div class="card-rarity-label">${'★'.repeat(card.rarity)}</div>
         <div class="card-name">${card.name}</div>
+        <div class="card-desc">${card.description ?? ''}</div>
         <div class="card-type">${card.type}</div>
         <div class="card-cost">${card.cost}코인</div>
       `;
@@ -57,10 +77,11 @@
       const card = hand[i];
       slot.className = card ? `hand-slot filled rarity-${card.rarity}` : 'hand-slot';
       if (card) {
-        slot.innerHTML = `<span class="card-name">${card.name}</span><span class="card-type">${card.type}</span>`;
-        slot.title = `클릭하여 판매 (+${Math.floor(card.cost * 0.5)}코인)`;
+        slot.innerHTML = `<span class="card-rarity-label">${'★'.repeat(card.rarity)}</span><span class="card-name">${card.name}</span>`;
+        slot.title = `${card.name}\n${card.description ?? ''}\n\n클릭하여 판매 (+${card.sellPrice ?? Math.floor(card.cost * 0.5)}코인)`;
         slot.addEventListener('click', () => {
-          if (confirm(`'${card.name}' 카드를 판매하겠습니까?\n(+${Math.floor(card.cost * 0.5)}코인)`)) {
+          const sp = card.sellPrice ?? Math.floor(card.cost * 0.5);
+          if (confirm(`'${card.name}' 카드를 판매하겠습니까?\n(+${sp}코인)`)) {
             getSocket()?.emit('sell_hand_card', { cardId: card.id });
           }
         });
@@ -69,12 +90,21 @@
     }
   }
 
-  function onBuyCardResult({ success, coins, hand: newHand }) {
+  function onBuyCardResult({ success, absorbed, leveled, coins, hand: newHand }) {
     if (!success) return;
     currentCoins = coins;
     hand = newHand;
     document.getElementById('shop-coins').textContent = `💰 ${Math.floor(currentCoins)}`;
     _renderHand();
+    if (absorbed) {
+      const msg = leveled ? '카드 레벨 업! 효과가 강화되었습니다.' : '카드 흡수 완료 (XP 획득)';
+      const el = document.getElementById('shop-coins');
+      const tip = document.createElement('span');
+      tip.textContent = ' ' + msg;
+      tip.style.cssText = 'font-size:10px;color:#4caf50;';
+      el.parentNode.appendChild(tip);
+      setTimeout(() => tip.remove(), 2000);
+    }
   }
 
   function onSellHandCardResult({ success, coins, hand: newHand }) {
@@ -85,5 +115,17 @@
     _renderHand();
   }
 
-  return { init, onShopStart, onBuyCardResult, onSellHandCardResult };
+    function onUpgradeResult({ success, shopLevel: newLv, coins, cards }) {
+    if (!success) return;
+    shopLevel = newLv;
+    currentCoins = coins ?? currentCoins;
+    document.getElementById('shop-coins').textContent = `💰 ${Math.floor(currentCoins)}`;
+    if (cards) _renderShelf(cards);
+  }
+
+  function onHandUpdate({ hand: newHand }) {
+    if (newHand) { hand = newHand; _renderHand(); }
+  }
+
+  return { init, onShopStart, onBuyCardResult, onSellHandCardResult, onHandUpdate, onUpgradeResult };
 })();

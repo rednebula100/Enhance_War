@@ -41,7 +41,17 @@
       const card = hand[i];
       if (card) {
         slot.className = `hand-slot filled rarity-${card.rarity}`;
-        slot.innerHTML = `<span class="card-name">${card.name}</span><span class="card-type">${card.type}</span>`;
+        const lvTag = card.xpLevel > 1 ? ` Lv${card.xpLevel}` : '';
+        slot.innerHTML = `<span class="card-rarity-label">${'★'.repeat(card.rarity)}</span><span class="card-name">${card.name}${lvTag}</span>`;
+        slot.title = card.description ?? '';
+        if (card.type === 'active') {
+          slot.classList.add('active-card');
+          slot.addEventListener('click', () => {
+            if (confirm(`[액티브] ${card.name}\n${card.description ?? ''}\n\n발동하겠습니까?`)) {
+              getSocket()?.emit('use_card', { cardId: card.id });
+            }
+          });
+        }
       } else {
         slot.className = 'hand-slot';
         slot.innerHTML = '';
@@ -239,8 +249,24 @@
     if (damageTaken > 0) _flashDamage(`-${Math.round(damageTaken)} HP`);
   }
 
+  function onUseCardResult({ cardId, hand, coins }) {
+    if (hand) _updateHand(hand, 'hand-bar');
+    if (coins !== undefined) _updateMyState({ coins });
+  }
+
+  function onHandUpdate({ hand }) {
+    if (hand) _updateHand(hand, 'hand-bar');
+  }
+
+  function onCardEffect({ effect, value, amount, durationMs }) {
+    if (effect === 'cracked')  _flashDamage('균열!');
+    if (effect === 'slow')     _flashDamage('저주!');
+    if (effect === 'stolen' && amount > 0) _flashDamage(`-${amount} 코인!`);
+  }
+
   return {
     init, onMatchFound, onRoundStart,
     onEnhanceResult, onSellResult, onOpponentUpdate, onRoundEnd,
+    onUseCardResult, onHandUpdate, onCardEffect,
   };
 })();
