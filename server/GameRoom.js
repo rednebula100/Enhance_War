@@ -11,6 +11,8 @@ const GAME_CONFIG = {
   BASE_ENHANCE_COOLDOWN_MS: 1500, // 기본 강화 쿨타임 — c002/c019/c021 카드가 이 값에 영향
   ROUND_COIN_GRANTS: [0, 100, 120, 140, 160, 180, 200, 220, 240], // index=라운드(1~8+)
   HAND_MAX: 8,
+  ZERO_ATK_STALEMATE_ROUNDS: 3,  // §5 안전장치: 연속 교착 허용 라운드 수
+  STALEMATE_DAMAGE: 5,            // §5 안전장치: 교착 돌파 고정 피해
   SHOP_CARD_COUNT: 4,
   // 상점 레벨별 설정 (§7-2)
   SHOP_LEVEL_CONFIG: [
@@ -123,6 +125,7 @@ class GameRoom {
         crackedPenalty: 0, invincible: false, godSword: false },
     ];
     this.round = 0;
+    this.zeroAtkStreak = 0;
     this.phase = null;
     this.timer = null;
     this.botInterval = null;
@@ -464,18 +467,30 @@ class GameRoom {
     const dur0 = durability(this.swords[0].level) * m0.durMul;
     const dur1 = durability(this.swords[1].level) * m1.durMul;
 
+    // §5 안전장치: 양쪽 ATK=0 교착 카운터
+    if (atk0 === 0 && atk1 === 0) {
+      this.zeroAtkStreak++;
+    } else {
+      this.zeroAtkStreak = 0;
+    }
+
     const ticksA = atk1 > 0 ? Math.ceil(dur0 / atk1) : Infinity;
     const ticksB = atk0 > 0 ? Math.ceil(dur1 / atk0) : Infinity;
     let dmg0 = 0, dmg1 = 0;
 
-    if (ticksA < ticksB) {
+    if (this.zeroAtkStreak >= GAME_CONFIG.ZERO_ATK_STALEMATE_ROUNDS) {
+      // N회 연속 교착 → 양쪽 고정 피해로 매치 진행 보장
+      dmg0 = dmg1 = GAME_CONFIG.STALEMATE_DAMAGE;
+      this.swords[0].hp -= dmg0;
+      this.swords[1].hp -= dmg1;
+    } else if (ticksA < ticksB) {
       dmg0 = this.swords[0].invincible ? 0 : hpDamage(atk1, this.round);
       this.swords[0].hp -= dmg0;
     } else if (ticksB < ticksA) {
       dmg1 = this.swords[1].invincible ? 0 : hpDamage(atk0, this.round);
       this.swords[1].hp -= dmg1;
     }
-    // 동률(ticksA === ticksB): 피해 없음
+    // 동률(ticksA === ticksB, 단 교착 아님): 피해 없음
     this.swords[0].invincible = false;
     this.swords[1].invincible = false;
 
