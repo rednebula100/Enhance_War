@@ -3,6 +3,7 @@
 html, body { margin: 0; padding: 0; overflow: hidden; background: #0e0c12; }
 button { appearance: none; -webkit-appearance: none; }
 button:disabled { opacity: 1; }
+#hammer-icon.hammer-strike { animation: fx_hammer .25s steps(4) both, fx_hammerUp .28s steps(4) .18s both; }
 #game-root {
   position: absolute;
   width: 1280px; height: 720px;

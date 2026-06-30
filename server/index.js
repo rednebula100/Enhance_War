@@ -94,6 +94,18 @@ io.on('connection', (socket) => {
     rooms.get(session.room)?.handleUpgradeShop(session.playerIdx);
   });
 
+  socket.on('reroll_shop', () => {
+    const session = sessions.get(socket.id);
+    if (!session?.room) return;
+    rooms.get(session.room)?.handleRerollShop(session.playerIdx);
+  });
+
+  socket.on('freeze_shop', () => {
+    const session = sessions.get(socket.id);
+    if (!session?.room) return;
+    rooms.get(session.room)?.handleFreezeShop(session.playerIdx);
+  });
+
   socket.on('use_card', ({ cardId }) => {
     const session = sessions.get(socket.id);
     if (!session?.room) return;

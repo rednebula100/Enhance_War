@@ -55,6 +55,8 @@ function connectSocket(idToken) {
   socket.on('buy_card_result',    (data) => Shop.onBuyCardResult(data));
   socket.on('sell_hand_card_result',  (data) => Shop.onSellHandCardResult(data));
   socket.on('shop_upgrade_result',    (data) => Shop.onUpgradeResult(data));
+  socket.on('reroll_result',           (data) => Shop.onRerollResult(data));
+  socket.on('freeze_result',           (data) => Shop.onFreezeResult(data));
   socket.on('use_card_result', (data) => Game.onUseCardResult(data));
   socket.on('hand_update',     (data) => { Game.onHandUpdate(data); Shop.onHandUpdate(data); });
   socket.on('card_effect',     (data) => Game.onCardEffect(data));

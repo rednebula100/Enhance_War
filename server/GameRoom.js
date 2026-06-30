@@ -119,10 +119,12 @@ class GameRoom {
     this.swords = [
       { hp: GAME_CONFIG.PLAYER_HP, coins: GAME_CONFIG.STARTING_COINS, level: 0, combo: 0, hand: [],
         shopLevel: 1, lastEnhanceMs: 0, insuranceActive: false, slowDebuffExpiry: 0,
-        crackedPenalty: 0, invincible: false, godSword: false },
+        crackedPenalty: 0, invincible: false, godSword: false,
+        rerollsThisShop: 0, freezeLeft: 2, frozen: false, frozenCards: null },
       { hp: GAME_CONFIG.PLAYER_HP, coins: GAME_CONFIG.STARTING_COINS, level: 0, combo: 0, hand: [],
         shopLevel: 1, lastEnhanceMs: 0, insuranceActive: false, slowDebuffExpiry: 0,
-        crackedPenalty: 0, invincible: false, godSword: false },
+        crackedPenalty: 0, invincible: false, godSword: false,
+        rerollsThisShop: 0, freezeLeft: 2, frozen: false, frozenCards: null },
     ];
     this.round = 0;
     this.zeroAtkStreak = 0;
@@ -245,7 +247,7 @@ class GameRoom {
         sword.coins += steal;
         notify = { event: 'card_effect', data: { effect: 'stolen', amount: steal } };
         this._emit(playerIdx,     'use_card_result', { success: true, cardId, coins: sword.coins });
-        this._emit(1 - playerIdx, 'opponent_update', { level: opp.level, atk: attackPower(opp.level), coins: opp.coins });
+        this._emit(1 - playerIdx, 'opponent_update', { level: opp.level, atk: attackPower(opp.level), coins: opp.coins, handCount: opp.hand.length });
         sword.hand.splice(cardIdx, 1);
         this._emit(playerIdx, 'hand_update', { hand: sword.hand });
         if (notify) this._emit(1 - playerIdx, notify.event, notify.data);
@@ -285,6 +287,45 @@ class GameRoom {
     const newCards = this._drawShopCards(sword.shopLevel);
     this._emit(playerIdx, 'shop_upgrade_result', {
       success: true, shopLevel: sword.shopLevel, coins: sword.coins, cards: newCards,
+    });
+  }
+
+  handleRerollShop(playerIdx) {
+    if (this.phase !== 'SHOP') return;
+    const sword = this.swords[playerIdx];
+    const cost = 2 + sword.rerollsThisShop; // 2c, 3c, 4c... 누적 증가
+    if (sword.coins < cost) {
+      return this._emit(playerIdx, 'reroll_result', { success: false, reason: 'INSUFFICIENT_COINS', cost });
+    }
+    sword.coins -= cost;
+    sword.rerollsThisShop++;
+    sword.frozen = false;
+    sword.frozenCards = null;
+    const newCards = this._drawShopCards(sword.shopLevel);
+    sword.shopCards = [...newCards];
+    const nextCost = 2 + sword.rerollsThisShop;
+    this._emit(playerIdx, 'reroll_result', {
+      success: true, cards: newCards, coins: sword.coins, cost, nextCost,
+    });
+  }
+
+  handleFreezeShop(playerIdx) {
+    if (this.phase !== 'SHOP') return;
+    const sword = this.swords[playerIdx];
+    if (!sword.frozen) {
+      if (sword.freezeLeft <= 0) {
+        return this._emit(playerIdx, 'freeze_result', { success: false, reason: 'NO_USES' });
+      }
+      sword.freezeLeft--;
+      sword.frozen = true;
+      sword.frozenCards = [...(sword.shopCards ?? [])];
+    } else {
+      // 얼리기 해제 (횟수 복구 없음)
+      sword.frozen = false;
+      sword.frozenCards = null;
+    }
+    this._emit(playerIdx, 'freeze_result', {
+      success: true, frozen: sword.frozen, freezeLeft: sword.freezeLeft,
     });
   }
 
@@ -351,7 +392,7 @@ class GameRoom {
 
   _publicSwordState(idx) {
     const s = this.swords[idx];
-    return { level: s.level, atk: attackPower(s.level), hp: s.hp };
+    return { level: s.level, atk: attackPower(s.level), hp: s.hp, handCount: s.hand.length };
   }
 
   _startRound() {
@@ -439,7 +480,7 @@ class GameRoom {
     });
     // 상대에게 실시간 브로드캐스트 (거울 UI 핵심 텐션)
     this._emit(1 - idx, 'opponent_update', {
-      level: sword.level, atk: attackPower(sword.level),
+      level: sword.level, atk: attackPower(sword.level), handCount: this.swords[idx].hand.length,
     });
   }
 
@@ -453,7 +494,7 @@ class GameRoom {
     sword.combo = 0;
 
     this._emit(idx, 'sell_result', { gained, coins: sword.coins });
-    this._emit(1 - idx, 'opponent_update', { level: 0, atk: 0 });
+    this._emit(1 - idx, 'opponent_update', { level: 0, atk: 0, handCount: this.swords[idx].hand.length });
   }
 
   _startCombat() {
@@ -573,12 +614,23 @@ class GameRoom {
   _startShop() {
     this.phase = 'SHOP';
     [0, 1].forEach(i => {
-      const shopCards = this._drawShopCards(this.swords[i].shopLevel);
-      this.swords[i].shopCards = [...shopCards]; // 진열대 상태 저장 (구매 시 갱신)
+      const sword = this.swords[i];
+      // 얼린 카드가 있으면 그대로, 없으면 새로 뽑기
+      let shopCards;
+      if (sword.frozen && sword.frozenCards) {
+        shopCards = sword.frozenCards;
+        sword.frozen = false;
+        sword.frozenCards = null;
+      } else {
+        shopCards = this._drawShopCards(sword.shopLevel);
+      }
+      sword.shopCards = [...shopCards];
+      sword.rerollsThisShop = 0;
+      sword.freezeLeft = 2;
       this._emit(i, 'shop_start', {
         timeLeft: GAME_CONFIG.SHOP_DURATION_MS / 1000,
         cards: shopCards,
-        myState: { coins: this.swords[i].coins, hand: [...this.swords[i].hand], shopLevel: this.swords[i].shopLevel },
+        myState: { coins: sword.coins, hand: [...sword.hand], shopLevel: sword.shopLevel },
       });
     });
 

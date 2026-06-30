@@ -241,8 +241,12 @@
     }
   }
 
-  function onOpponentUpdate({ level, atk }) {
+  function onOpponentUpdate({ level, atk, handCount }) {
     _updateOppState({ level, atk });
+    if (handCount !== undefined) {
+      const hcEl = document.getElementById('opp-hand-count');
+      if (hcEl) hcEl.textContent = '\xd7' + handCount;
+    }
   }
 
   async function onRoundEnd({ myHp, opponentHp, damageTaken, hits, myInitDur, oppInitDur }) {

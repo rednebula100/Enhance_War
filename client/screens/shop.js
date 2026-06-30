@@ -191,5 +191,32 @@
     if (newHand) { hand = newHand; _renderHand(); }
   }
 
-  return { init, onShopStart, onBuyCardResult, onSellHandCardResult, onHandUpdate, onUpgradeResult };
+  function onRerollResult({ success, cards, coins, cost, nextCost, reason }) {
+    if (!success) {
+      _showToast(reason === 'INSUFFICIENT_COINS' ? '코인이 부족합니다' : '리롤 불가');
+      return;
+    }
+    currentCoins = coins;
+    _syncCoins(currentCoins);
+    _renderShelf(cards);
+    // 리롤 버튼 다음 비용 표시
+    const rerollCostEl = document.querySelector('#btn-shop-reroll span:last-child');
+    if (rerollCostEl) rerollCostEl.textContent = nextCost + ' 코인';
+    if (typeof FX !== 'undefined') FX.coinChange('minus', cost);
+  }
+
+  function onFreezeResult({ success, frozen, freezeLeft, reason }) {
+    if (!success) {
+      _showToast(reason === 'NO_USES' ? '얼리기 횟수를 다 사용했습니다' : '얼리기 불가');
+      return;
+    }
+    const lbl = document.getElementById('freeze-label');
+    const leftEl = document.getElementById('freeze-left');
+    if (lbl) lbl.textContent = frozen ? '🔒 얼림' : '❄ 얼리기';
+    if (leftEl) leftEl.textContent = freezeLeft;
+    const btn = document.getElementById('btn-shop-freeze');
+    if (btn) btn.style.opacity = frozen ? '0.75' : '1';
+  }
+
+  return { init, onShopStart, onBuyCardResult, onSellHandCardResult, onHandUpdate, onUpgradeResult, onRerollResult, onFreezeResult };
 })();
