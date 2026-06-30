@@ -185,6 +185,18 @@
     if (cards) _renderShelf(cards);
     const hcEl = document.getElementById('shop-hand-count');
     if (hcEl) hcEl.textContent = '손패 ' + (hand ? hand.length : 0) + ' / 8';
+    // 업그레이드 버튼 텍스트 갱신
+    const lvDisp = document.getElementById('shop-level-display');
+    if (lvDisp) lvDisp.textContent = shopLevel;
+    const upgBtn = document.getElementById('btn-upg-shop');
+    const costEl = document.getElementById('shop-upg-cost');
+    const UPGRADE_COSTS = [null, 300, 600, 1000, 1600, 2500, null];
+    const uc = UPGRADE_COSTS[shopLevel];
+    if (upgBtn) {
+      const lbl = upgBtn.querySelector('span:first-child');
+      if (lbl) lbl.textContent = uc ? 'Lv' + (shopLevel + 1) + ' ⬆' : '최대 등급';
+    }
+    if (costEl) costEl.textContent = uc ? uc + ' 코인' : '';
   }
 
   function onHandUpdate({ hand: newHand }) {

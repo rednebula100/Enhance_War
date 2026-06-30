@@ -133,6 +133,8 @@
     const atkEl = document.getElementById('opp-atk');     if (atkEl) atkEl.textContent = atk;
     const durEl = document.getElementById('opp-dur');     if (durEl) durEl.textContent = `DUR ${50 + level * 15}`;
     const oppDurTxt = document.getElementById('opp-dur-text'); if (oppDurTxt) oppDurTxt.textContent = 50 + level * 15;
+    const durBar = document.getElementById('opp-dur-bar');
+    if (durBar) durBar.style.width = '100%';
   }
 
   // FX15: rAF 기반 쿨다운 — FX15 verbatim (버튼 외부 sibling overlay)

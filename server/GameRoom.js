@@ -180,6 +180,8 @@ class GameRoom {
         const newLv = thresholds.findIndex(t => (existing.xp || 0) < t);
         existing.xpLevel = newLv === -1 ? 3 : Math.max(1, newLv);
         const leveled = existing.xpLevel > prevLv;
+        // xpMax: Lv1→목표3, Lv2→목표8, Lv3→최대(바 숨김)
+        existing.xpMax = existing.xpLevel >= 3 ? 0 : existing.xpLevel === 1 ? 3 : 8;
         if (sword.shopCards) sword.shopCards = sword.shopCards.filter(c => c.id !== cardId);
         this._emit(playerIdx, 'buy_card_result', {
           success: true, absorbed: true, cardId,
@@ -195,7 +197,7 @@ class GameRoom {
       return this._emit(playerIdx, 'buy_card_result', { success: false, reason: 'HAND_FULL' });
     }
     sword.coins -= card.cost;
-    sword.hand.push({ ...card, xp: 0, xpLevel: 1 });
+    sword.hand.push({ ...card, xp: 0, xpLevel: 1, xpMax: card.levelable ? 3 : 0 });
 
     if (sword.shopCards) sword.shopCards = sword.shopCards.filter(c => c.id !== cardId);
     this._emit(playerIdx, 'buy_card_result', {
