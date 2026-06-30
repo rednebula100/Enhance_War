@@ -1,4 +1,4 @@
-/* fx.js — animation triggers (design-reference verbatim timing/style, vanilla DOM) */
+﻿/* fx.js — animation triggers (design-reference verbatim timing/style, vanilla DOM) */
 const FX = (() => {
 
   // ── helpers ───────────────────────────────────────────────────────────────
@@ -184,19 +184,19 @@ const FX = (() => {
     const N = (serverHits && serverHits.length > 0) ? serverHits.length : 8;
     const openCount = Math.min(3, N - 1);
     const montageCount = Math.max(0, N - openCount - 1);
-    const montagePer = Math.max(58, Math.min(150, Math.round(3400 / Math.max(1, montageCount))));
+    const montagePer = Math.max(120, Math.min(200, Math.round(3400 / Math.max(1, montageCount))));
 
     const schedule = (serverHits && serverHits.length > 0)
       ? serverHits.map((h, i) => {
           const phase = i < openCount ? 'open' : i === N-1 ? 'finish' : 'montage';
-          const per = phase === 'open' ? 250 : phase === 'finish' ? 260 : montagePer;
+          const per = phase === 'open' ? 500 : phase === 'finish' ? 400 : montagePer;
           return { ...h, phase, isLast: i === N-1, per };
         })
       : (() => {
           const hits = [];
           for (let i = 0; i < N; i++) {
             const phase = i < openCount ? 'open' : i === N-1 ? 'finish' : 'montage';
-            hits.push({ def: i%2===0?'me':'opp', phase, isLast: i===N-1, per: phase==='open'?250:phase==='finish'?260:montagePer, crit: false });
+            hits.push({ def: i%2===0?'me':'opp', phase, isLast: i===N-1, per: phase==='open'?500:phase==='finish'?400:montagePer, crit: false });
           }
           return hits;
         })();
@@ -276,9 +276,9 @@ const FX = (() => {
     const timers = [];
     const phaseLabels = { open: '교전 개시', montage: '집중 타격', finish: '결정타' };
 
-    let t = 350;
+    let t = 500;
     schedule.forEach((hit, idx) => {
-      if (hit.isLast) t += 340;
+      if (hit.isLast) t += 600;
       timers.push(setTimeout(() => {
         // Jolt struck sword
         const swordEl = el('cbsword-' + hit.def);
@@ -382,7 +382,7 @@ const FX = (() => {
     if (updateHpCb) updateHpCb(finalMyHp, finalOppHp);
     if (damageTaken > 0 && flashCb) flashCb('-' + Math.round(damageTaken) + ' HP');
 
-    await new Promise(res => setTimeout(res, 1400));
+    await new Promise(res => setTimeout(res, 1600));
 
     timers.forEach(clearTimeout);
     engLyr.innerHTML = '';

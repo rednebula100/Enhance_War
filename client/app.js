@@ -51,7 +51,22 @@ function connectSocket(idToken) {
   socket.on('sell_result',   (data) => Game.onSellResult(data));
   socket.on('opponent_update',(data)=> Game.onOpponentUpdate(data));
   socket.on('round_end',     async (data) => { await Game.onRoundEnd(data); });
-  socket.on('shop_start',    (data) => { Shop.onShopStart(data); showScreen('screen-shop'); });
+  socket.on('shop_start', (data) => {
+    Shop.onShopStart(data);
+    // Battle.dc.html: phase='exit' → fx_slideOut .5s steps(6) both on board
+    //                 shopEnter=true → fx_dropIn .6s steps(7) both on shop panel
+    const gameScr = document.getElementById('screen-game');
+    if (gameScr) gameScr.style.animation = 'fx_slideOut .5s steps(6) both';
+    setTimeout(() => {
+      showScreen('screen-shop');
+      if (gameScr) gameScr.style.animation = '';
+      const shopScr = document.getElementById('screen-shop');
+      if (shopScr) {
+        shopScr.style.animation = 'fx_dropIn .6s steps(7) both';
+        setTimeout(() => { if (shopScr) shopScr.style.animation = ''; }, 700);
+      }
+    }, 480);
+  });
   socket.on('buy_card_result',    (data) => Shop.onBuyCardResult(data));
   socket.on('sell_hand_card_result',  (data) => Shop.onSellHandCardResult(data));
   socket.on('shop_upgrade_result',    (data) => Shop.onUpgradeResult(data));

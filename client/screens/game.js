@@ -71,15 +71,12 @@
     let left = seconds;
 
     bar.style.width = '100%';
-    bar.style.background = 'var(--hp-green)';
     txt.textContent = left;
 
     timerInterval = setInterval(() => {
       left--;
       txt.textContent = Math.max(0, left);
-      const pct = Math.max(0, (left / seconds) * 100);
-      bar.style.width = pct + '%';
-      if (pct < 30) bar.style.background = 'var(--danger)';
+      bar.style.width = Math.max(0, (left / seconds) * 100) + '%';
       if (left <= 0) clearInterval(timerInterval);
     }, 1000);
   }

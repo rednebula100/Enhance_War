@@ -6,10 +6,29 @@
   let shopLevel = 1;
   const SHOP_UPGRADE_COSTS = [null, 300, 600, 1000, 1600, 2500, null];
 
+  function _triggerAnim(el, anim) {
+    if (!el) return;
+    el.style.animation = 'none';
+    void el.offsetWidth;
+    el.style.animation = anim;
+  }
+
   function init(socketGetter) {
     getSocket = socketGetter;
-    document.getElementById('btn-shop-reroll')?.addEventListener('click', () => getSocket()?.emit('reroll_shop'));
-    document.getElementById('btn-shop-freeze')?.addEventListener('click', () => getSocket()?.emit('freeze_shop'));
+    // 리롤: fx_btnPress + 기존 카드 fx_cardOut → 서버 emit (Battle.dc.html verbatim)
+    document.getElementById('btn-shop-reroll')?.addEventListener('click', () => {
+      _triggerAnim(document.getElementById('btn-shop-reroll'), 'fx_btnPress .3s steps(3) both');
+      const shelf = document.getElementById('shop-shelf');
+      if (shelf) Array.from(shelf.children).forEach((c, i) => {
+        c.style.animation = 'fx_cardOut .3s steps(4) ' + (i * 0.04) + 's both';
+      });
+      getSocket()?.emit('reroll_shop');
+    });
+    // 얼리기: fx_btnPress (Battle.dc.html verbatim)
+    document.getElementById('btn-shop-freeze')?.addEventListener('click', () => {
+      _triggerAnim(document.getElementById('btn-shop-freeze'), 'fx_btnPress .3s steps(3) both');
+      getSocket()?.emit('freeze_shop');
+    });
   }
 
   function _syncCoins(c) {
@@ -50,7 +69,10 @@
       upgBtn.innerHTML = uc
         ? 'Lv' + (shopLevel + 1) + ' 업그레이드<br><span style="font-size:8px;">' + uc + '코인</span>'
         : '최대 등급';
-      upgBtn.onclick = () => getSocket()?.emit('upgrade_shop');
+      upgBtn.onclick = () => {
+        _triggerAnim(upgBtn, 'fx_btnPress .3s steps(3) both');
+        getSocket()?.emit('upgrade_shop');
+      };
     }
 
     const hcEl = document.getElementById('shop-hand-count');
@@ -65,10 +87,9 @@
     if (oppNameEl) oppNameEl.textContent = window.oppDisplayName || '상대방';
 
     _startShopTimer(timeLeft);
-    _renderShelf(cards);
+    _renderShelf(cards, true);  // fx_cardDeal stagger (Battle.dc.html)
     _renderHand();
 
-    if (typeof FX !== 'undefined') FX.shopOpen();
   }
 
   function _startShopTimer(seconds) {
@@ -76,7 +97,6 @@
     const txt = document.getElementById('shop-timer-text');
     if (!bar || !txt) return;
     bar.style.width = '100%';
-    bar.style.background = 'var(--hp-green)';
     txt.textContent = seconds;
     let left = seconds;
     const iv = setInterval(() => {
@@ -87,15 +107,17 @@
     }, 1000);
   }
 
-  function _renderShelf(cards) {
+  function _renderShelf(cards, withDealAnim) {
     currentCards = cards ?? [];
     const shelf = document.getElementById('shop-shelf');
     if (!shelf) return;
     shelf.innerHTML = '';
 
-    currentCards.forEach(card => {
+    currentCards.forEach((card, i) => {
       const wrapper = document.createElement('div');
-      wrapper.style.cssText = 'cursor:pointer;flex:none;width:136px;height:180px;';
+      const dealDelay = (i * 0.07).toFixed(2);
+      const dealAnim = withDealAnim ? 'fx_cardDeal .4s steps(5) ' + dealDelay + 's both' : '';
+      wrapper.style.cssText = 'cursor:pointer;flex:none;width:136px;height:180px;' + (dealAnim ? 'animation:' + dealAnim + ';' : '');
       wrapper.title = card.name + '\n' + (card.description || '');
       wrapper.innerHTML = (typeof FX !== 'undefined') ? FX.buildCardHTML(card) : card.name;
       wrapper.addEventListener('click', () => getSocket()?.emit('buy_card', { cardId: card.id }));
@@ -197,6 +219,10 @@
       if (lbl) lbl.textContent = uc ? 'Lv' + (shopLevel + 1) + ' ⬆' : '최대 등급';
     }
     if (costEl) costEl.textContent = uc ? uc + ' 코인' : '';
+    // fx_lvNumPop on level number, fx_lvGlow on upgrade button (Battle.dc.html verbatim)
+    const lvNumEl = document.getElementById('shop-level-display');
+    _triggerAnim(lvNumEl, 'fx_lvNumPop .5s steps(5) both');
+    _triggerAnim(upgBtn, 'fx_lvGlow 1s steps(5) both');
   }
 
   function onHandUpdate({ hand: newHand }) {
@@ -210,7 +236,7 @@
     }
     currentCoins = coins;
     _syncCoins(currentCoins);
-    _renderShelf(cards);
+    _renderShelf(cards, true);  // fx_cardDeal stagger (Battle.dc.html)
     // 리롤 버튼 다음 비용 표시
     const rerollCostEl = document.querySelector('#btn-shop-reroll span:last-child');
     if (rerollCostEl) rerollCostEl.textContent = nextCost + ' 코인';
@@ -225,7 +251,10 @@
     const lbl = document.getElementById('freeze-label');
     const leftEl = document.getElementById('freeze-left');
     if (lbl) lbl.textContent = frozen ? '🔒 얼림' : '❄ 얼리기';
-    if (leftEl) leftEl.textContent = freezeLeft;
+    if (leftEl) {
+      leftEl.textContent = freezeLeft;
+      _triggerAnim(leftEl, 'fx_freezeNumPop .5s steps(5) both');
+    }
     const btn = document.getElementById('btn-shop-freeze');
     if (btn) btn.style.opacity = frozen ? '0.75' : '1';
   }
