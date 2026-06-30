@@ -623,3 +623,140 @@ body::after {
 .hammer.hammer-strike { animation:hammer-strike 0.24s ease-in-out; }
 .anvil-box { font-size:24px; user-select:none; line-height:1; }
 .anvil-wrap { display:flex; flex-direction:column; align-items:center; gap:2px; }
+/* ═══════════════════════════════════════════════════════════════
+   FX 키프레임 — design-reference FX 파일에서 추출
+═══════════════════════════════════════════════════════════════ */
+/* FX01 강화성공 */
+@keyframes fx_spark { 0%{ transform:translate(0,0) scale(1); opacity:0 } 8%{ opacity:1 } 100%{ transform:translate(var(--dx,0),var(--dy,0)) scale(.4); opacity:0 } }
+@keyframes fx_sparkle { 0%{ transform:translate(0,0) scale(0); opacity:1 } 40%{ transform:translate(var(--dx,0),var(--dy,0)) scale(1) } 100%{ transform:translate(var(--dx,0),var(--dy,0)) scale(.3); opacity:0 } }
+@keyframes fx_ring { 0%{ transform:translate(-50%,-50%) scale(.2); opacity:0 } 8%{ opacity:.9 } 100%{ transform:translate(-50%,-50%) scale(2.6); opacity:0 } }
+@keyframes fx_flash { 0%{ opacity:0 } 8%{ opacity:.9 } 100%{ opacity:0 } }
+@keyframes fx_badge { 0%{ transform:translate(-50%,-50%) scale(.2); opacity:0 } 35%{ transform:translate(-50%,-50%) scale(1.3); opacity:1 } 60%{ transform:translate(-50%,-50%) scale(.95) } 80%{ transform:translate(-50%,-50%) scale(1.05) } 100%{ transform:translate(-50%,-58%) scale(1); opacity:0 } }
+@keyframes fx_float { 0%{ transform:translate(-50%,0); opacity:0 } 20%{ opacity:1 } 100%{ transform:translate(-50%,-46px); opacity:0 } }
+@keyframes fx_shakeS { 0%,100%{ transform:translate(0,0) } 25%{ transform:translate(-2px,1px) } 50%{ transform:translate(2px,-1px) } 75%{ transform:translate(-1px,2px) } }
+@keyframes fx_shakeM { 0%,100%{ transform:translate(0,0) } 20%{ transform:translate(-4px,2px) } 40%{ transform:translate(4px,-3px) } 60%{ transform:translate(-3px,3px) } 80%{ transform:translate(3px,-2px) } }
+@keyframes fx_shakeL { 0%,100%{ transform:translate(0,0) } 15%{ transform:translate(-8px,4px) } 30%{ transform:translate(8px,-6px) } 45%{ transform:translate(-7px,6px) } 60%{ transform:translate(7px,-4px) } 75%{ transform:translate(-5px,5px) } 90%{ transform:translate(4px,-3px) } }
+@keyframes fx_shimmer { 0%{ background-position:0% 50% } 100%{ background-position:200% 50% } }
+@keyframes fx_pillar { 0%{ transform:translateX(-50%) scaleY(0); opacity:0 } 25%{ opacity:.9 } 100%{ transform:translateX(-50%) scaleY(1); opacity:0 } }
+@keyframes fx_core { 0%{ transform:scale(.5); opacity:.4 } 30%{ transform:scale(1.3); opacity:1 } 60%{ transform:scale(.92); opacity:.9 } 100%{ transform:scale(1); opacity:.82 } }
+@keyframes fx_coreCharge { 0%{ transform:scale(.5); opacity:.2 } 100%{ transform:scale(.74); opacity:.55 } }
+/* FX02 강화실패 */
+@keyframes fx_vanish { to { opacity:0 } }
+@keyframes fx_crack { 0%{ transform:scaleY(0); opacity:0 } 40%{ transform:scaleY(1); opacity:1 } 80%{ opacity:1 } 100%{ transform:scaleY(1); opacity:0 } }
+@keyframes fx_redflash { 0%{ opacity:0 } 30%{ opacity:.8 } 100%{ opacity:0 } }
+@keyframes fx_shatter { 0%{ transform:translate(0,0) rotate(0deg); opacity:0 } 4%{ opacity:1 } 70%{ opacity:1 } 100%{ transform:translate(var(--dx,0),var(--dy,0)) rotate(var(--rot,90deg)); opacity:0 } }
+@keyframes fx_drain { 0%{ filter:saturate(1) brightness(1) } 14%{ filter:saturate(.15) brightness(.6) } 60%{ filter:saturate(.2) brightness(.7) } 100%{ filter:saturate(1) brightness(1) } }
+@keyframes fx_brokenIn { 0%{ transform:translate(-50%,-50%) scale(2.4); opacity:0 } 30%{ transform:translate(-50%,-50%) scale(.9); opacity:1 } 45%{ transform:translate(-50%,-50%) scale(1.06) } 60%{ transform:translate(-50%,-50%) scale(1) } 82%{ opacity:1 } 100%{ transform:translate(-50%,-50%) scale(1); opacity:0 } }
+@keyframes fx_brokenShake { 0%,100%{ margin-left:0 } 25%{ margin-left:-3px } 75%{ margin-left:3px } }
+/* FX03 코인변화 */
+@keyframes fx_coinPop { 0%{ transform:scale(1) } 25%{ transform:scale(1.35) translateY(-6px) } 50%{ transform:scale(.92) } 75%{ transform:scale(1.08) } 100%{ transform:scale(1) } }
+@keyframes fx_coinShake { 0%,100%{ transform:translate(0,0) } 20%{ transform:translate(-3px,1px) } 40%{ transform:translate(3px,1px) } 60%{ transform:translate(-2px,1px) } 80%{ transform:translate(2px,1px) } }
+@keyframes fx_denyShake { 0%,100%{ transform:translateX(0) } 20%{ transform:translateX(-4px) } 40%{ transform:translateX(4px) } 60%{ transform:translateX(-3px) } 80%{ transform:translateX(3px) } }
+@keyframes fx_floatUp { 0%{ transform:translate(-50%,6px); opacity:0 } 22%{ opacity:1 } 100%{ transform:translate(-50%,-42px); opacity:0 } }
+@keyframes fx_floatDown { 0%{ transform:translate(-50%,-6px); opacity:0 } 22%{ opacity:1 } 100%{ transform:translate(-50%,40px); opacity:0 } }
+/* FX04 판매 */
+@keyframes fx_goldWipe { 0%{ height:0% } 100%{ height:100% } }
+@keyframes fx_collapse { 0%{ transform:translateY(0) scaleY(1); opacity:1 } 100%{ transform:translateY(40px) scaleY(.2); opacity:0 } }
+@keyframes fx_fly { 0%{ transform:translate(0,0) scale(1); opacity:0 } 4%{ opacity:1 } 90%{ opacity:1 } 100%{ transform:translate(var(--dx,0),var(--dy,0)) scale(.5); opacity:0 } }
+@keyframes fx_stamp { 0%{ transform:translate(-50%,-50%) scale(2.6) rotate(-12deg); opacity:0 } 30%{ transform:translate(-50%,-50%) scale(.92) rotate(-12deg); opacity:1 } 60%{ transform:translate(-50%,-50%) scale(1) rotate(-12deg); opacity:1 } 85%{ opacity:1 } 100%{ opacity:0 } }
+/* FX05 라운드시작 */
+@keyframes fx_dim { 0%{ opacity:0 } 12%{ opacity:.82 } 70%{ opacity:.82 } 100%{ opacity:0 } }
+@keyframes fx_dimOut { 0%{ opacity:.7 } 100%{ opacity:0 } }
+@keyframes fx_roundIn { 0%{ transform:translate(-50%,-50%) scale(3.4); opacity:0 } 22%{ transform:translate(-50%,-50%) scale(.9); opacity:1 } 36%{ transform:translate(-50%,-50%) scale(1.08) } 50%{ transform:translate(-50%,-50%) scale(1) } 78%{ transform:translate(-50%,-50%) scale(1); opacity:1 } 100%{ transform:translate(-50%,-58%) scale(1.05); opacity:0 } }
+@keyframes fx_labelIn { 0%{ transform:translate(-50%,0); opacity:0; letter-spacing:18px } 40%{ opacity:1 } 100%{ transform:translate(-50%,0); opacity:1; letter-spacing:6px } }
+@keyframes fx_emberBurst { 0%{ transform:translate(0,0) scale(1); opacity:0 } 6%{ opacity:1 } 100%{ transform:translate(var(--dx,0),var(--dy,0)) scale(.4); opacity:0 } }
+@keyframes fx_ignite { 0%{ width:0% } 100%{ width:100% } }
+@keyframes fx_igniteGlow { 0%,100%{ box-shadow:inset 0 2px 0 rgba(255,255,255,.3) } 50%{ box-shadow:inset 0 2px 0 rgba(255,255,255,.5),0 0 12px rgba(57,230,207,.7) } }
+/* FX06 상점오픈 */
+@keyframes fx_slideOut { 0%{ transform:translateY(0); opacity:1 } 100%{ transform:translateY(230px); opacity:0 } }
+@keyframes fx_dropIn { 0%{ transform:translateY(-260px); opacity:0 } 70%{ transform:translateY(8px); opacity:1 } 85%{ transform:translateY(-4px) } 100%{ transform:translateY(0); opacity:1 } }
+@keyframes fx_dealIn { 0%{ transform:translateY(90px) scale(.7); opacity:0 } 70%{ transform:translateY(-6px) scale(1.04); opacity:1 } 100%{ transform:translateY(0) scale(1); opacity:1 } }
+@keyframes fx_signLit { 0%{ opacity:.12; text-shadow:none } 100%{ opacity:1; text-shadow:0 0 10px rgba(245,170,60,.8),1px 2px 0 #000 } }
+@keyframes fx_signTwinkle { 0%,100%{ opacity:.6; transform:scale(1) } 50%{ opacity:1; transform:scale(1.25) } }
+/* FX07 교전 */
+@keyframes fx_joltL { 0%{ transform:translateX(0) } 30%{ transform:translateX(10px) rotate(4deg) } 60%{ transform:translateX(-4px) } 100%{ transform:translateX(0) } }
+@keyframes fx_joltR { 0%{ transform:translateX(0) } 30%{ transform:translateX(-10px) rotate(-4deg) } 60%{ transform:translateX(4px) } 100%{ transform:translateX(0) } }
+@keyframes fx_clash { 0%{ transform:translate(-50%,-50%) scale(.3); opacity:0 } 12%{ opacity:1 } 100%{ transform:translate(-50%,-50%) scale(1.9); opacity:0 } }
+@keyframes fx_streak { 0%{ transform:scaleX(0); opacity:0 } 40%{ transform:scaleX(1); opacity:.9 } 100%{ transform:scaleX(1); opacity:0 } }
+@keyframes fx_hitPop { 0%{ transform:translate(-50%,-50%) scale(1) } 40%{ transform:translate(-50%,-50%) scale(1.45) } 100%{ transform:translate(-50%,-50%) scale(1) } }
+@keyframes fx_winGlow { 0%,100%{ filter:drop-shadow(0 0 6px rgba(245,170,60,.5)) } 50%{ filter:drop-shadow(0 0 16px rgba(245,170,60,.9)) } }
+@keyframes fx_resultIn { 0%{ transform:translate(-50%,-50%) scale(2.6); opacity:0 } 40%{ transform:translate(-50%,-50%) scale(.95); opacity:1 } 60%{ transform:translate(-50%,-50%) scale(1.05) } 100%{ transform:translate(-50%,-50%) scale(1); opacity:1 } }
+/* FX08 7성리빌 */
+@keyframes fx_cardShake { 0%,100%{ transform:translate(0,0) } 25%{ transform:translate(-3px,2px) } 50%{ transform:translate(3px,-2px) } 75%{ transform:translate(-2px,-2px) } }
+@keyframes fx_charge { 0%{ transform:scale(.96) } 100%{ transform:scale(1.06) } }
+@keyframes fx_raysGrow { 0%{ transform:scale(.2); opacity:0 } 30%{ opacity:.8 } 100%{ transform:scale(1.7); opacity:0 } }
+@keyframes fx_raysSpin { 0%{ transform:rotate(0deg) } 100%{ transform:rotate(360deg) } }
+@keyframes fx_flipScale { 0%{ transform:scaleX(1) } 48%{ transform:scaleX(.06) } 52%{ transform:scaleX(.06) } 100%{ transform:scaleX(1) } }
+@keyframes fx_glow { 0%,100%{ filter:brightness(1) } 50%{ filter:brightness(1.25) } }
+@keyframes fx_revealPop { 0%{ transform:scale(.7); opacity:0 } 60%{ transform:scale(1.08); opacity:1 } 100%{ transform:scale(1) } }
+/* FX09 카드레벨업 */
+@keyframes fx_floatXp { 0%{ transform:translate(-50%,0); opacity:0 } 22%{ opacity:1 } 100%{ transform:translate(-50%,-46px); opacity:0 } }
+@keyframes fx_lvBurst { 0%{ transform:translate(-50%,-50%) scale(.2); opacity:0 } 40%{ transform:translate(-50%,-50%) scale(1.2); opacity:1 } 70%{ transform:translate(-50%,-50%) scale(.95) } 100%{ transform:translate(-50%,-66%) scale(1); opacity:0 } }
+@keyframes fx_ringPop { 0%{ transform:translate(-50%,-50%) scale(.3); opacity:0 } 20%{ opacity:.9 } 100%{ transform:translate(-50%,-50%) scale(2.2); opacity:0 } }
+@keyframes fx_lvEmber { 0%{ transform:translate(0,0) scale(1); opacity:0 } 8%{ opacity:1 } 100%{ transform:translate(var(--dx,0),var(--dy,0)) scale(.4); opacity:0 } }
+/* FX11 HP경고 */
+@keyframes fx_vignette { 0%,100%{ opacity:.15 } 50%{ opacity:.75 } }
+@keyframes fx_barPulse { 0%,100%{ filter:brightness(1) } 50%{ filter:brightness(1.5); box-shadow:0 0 14px rgba(232,70,63,.9) } }
+@keyframes fx_warnBlink { 0%,100%{ opacity:.25 } 50%{ opacity:1 } }
+@keyframes fx_heartBeat { 0%,100%{ transform:scale(1) } 30%{ transform:scale(1.22) } 45%{ transform:scale(1) } 60%{ transform:scale(1.14) } }
+/* FX15 강화쿨타임 */
+@keyframes fx_readyFlash { 0%{ box-shadow:0 0 0 0 rgba(245,150,42,0) } 20%{ box-shadow:0 0 0 3px #ffce5a,0 0 18px rgba(245,150,42,.9) } 100%{ box-shadow:0 0 0 0 rgba(245,150,42,0) } }
+@keyframes fx_readyPop { 0%{ transform:scale(1) } 30%{ transform:scale(1.05) } 100%{ transform:scale(1) } }
+@keyframes fx_scan { 0%{ opacity:.3 } 50%{ opacity:.9 } 100%{ opacity:.3 } }
+@keyframes fx_sparkUp { 0%{ transform:translateY(0); opacity:1 } 100%{ transform:translateY(-26px); opacity:0 } }
+/* 로비 */
+@keyframes lobbyGlow { 0%,100%{ text-shadow:0 0 14px rgba(245,170,60,.45),0 0 34px rgba(214,86,46,.3),3px 5px 0 #000 } 50%{ text-shadow:0 0 22px rgba(245,170,60,.75),0 0 48px rgba(214,86,46,.5),3px 5px 0 #000 } }
+@keyframes fx_screenIn { 0%{ transform:translateY(10px) } 100%{ transform:translateY(0) } }
+@keyframes fx_titleIn { 0%{ transform:translateY(-34px) scale(1.45); opacity:0 } 55%{ transform:translateY(0) scale(.96); opacity:1 } 75%{ transform:scale(1.04) } 100%{ transform:scale(1); opacity:1 } }
+@keyframes fx_emblemIn { 0%{ transform:scale(.2); opacity:0 } 60%{ transform:scale(1.12); opacity:1 } 100%{ transform:scale(1); opacity:1 } }
+@keyframes fx_riseIn { 0%{ transform:translateY(22px); opacity:0 } 100%{ transform:translateY(0); opacity:1 } }
+@keyframes fx_ctaPulse { 0%,100%{ box-shadow:inset 2px 2px 0 rgba(255,255,255,.4),inset -3px -4px 0 rgba(120,50,10,.5),0 6px 0 #6e3a12,0 9px 0 #000,0 0 0 rgba(245,170,60,0) } 50%{ box-shadow:inset 2px 2px 0 rgba(255,255,255,.4),inset -3px -4px 0 rgba(120,50,10,.5),0 6px 0 #6e3a12,0 9px 0 #000,0 0 26px rgba(245,170,60,.55) } }
+@keyframes fx_hammerSwing { 0%{ transform:rotate(-60deg) } 34%{ transform:rotate(10deg) } 44%{ transform:rotate(2deg) } 54%{ transform:rotate(7deg) } 100%{ transform:rotate(-60deg) } }
+@keyframes fx_anvilHit { 0%,30%{ transform:translateY(0) } 38%{ transform:translateY(3px) } 52%{ transform:translateY(0) } 100%{ transform:translateY(0) } }
+@keyframes fx_strikeEmber { 0%,32%{ transform:translate(0,0) scale(1); opacity:0 } 37%{ opacity:1 } 100%{ transform:translate(var(--dx,0),var(--dy,0)) scale(.4); opacity:0 } }
+@keyframes fx_strikeFlash { 0%,32%{ opacity:0 } 37%{ opacity:.85 } 60%{ opacity:0 } 100%{ opacity:0 } }
+@keyframes fx_dot { 0%,100%{ opacity:.18; transform:translateY(0) } 50%{ opacity:1; transform:translateY(-2px) } }
+@keyframes fx_backdropIn { 0%{ opacity:0 } 100%{ opacity:1 } }
+@keyframes fx_overlayPop { 0%{ transform:translate(-50%,-50%) scale(.78); opacity:0 } 55%{ transform:translate(-50%,-50%) scale(1.05); opacity:1 } 75%{ transform:translate(-50%,-50%) scale(.98) } 100%{ transform:translate(-50%,-50%) scale(1); opacity:1 } }
+@keyframes fx_toastIn { 0%{ transform:translate(-50%,-14px); opacity:0 } 14%{ transform:translate(-50%,0); opacity:1 } 82%{ transform:translate(-50%,0); opacity:1 } 100%{ transform:translate(-50%,-10px); opacity:0 } }
+@keyframes fx_scanbar { 0%{ transform:translateX(-100%) } 100%{ transform:translateX(220%) } }
+
+/* FX 유틸리티 클래스 */
+.fx-jolt-l { animation: fx_joltL .18s steps(3) both !important; }
+.fx-jolt-r { animation: fx_joltR .18s steps(3) both !important; }
+.fx-ready  { animation: fx_readyPop .3s steps(3) !important; }
+
+/* 강화 버튼 쿨타임 오버레이 (FX15 스타일 — 버튼 내부 bottom-up fill) */
+#btn-enhance { position:relative; overflow:hidden; }
+.enhance-cd-overlay {
+  position:absolute; left:0; right:0; bottom:0; height:0%;
+  background:linear-gradient(rgba(255,180,80,.25),rgba(245,140,50,.5));
+  border-top:2px solid #ffce5a;
+  box-shadow:0 -2px 8px rgba(255,180,80,.6);
+  z-index:3; pointer-events:none;
+  transition:height .06s steps(2);
+}
+.enhance-cd-overlay::after {
+  content:''; position:absolute; top:-1px; left:0; right:0; height:2px;
+  background:#fff0c8; animation:fx_scan .5s steps(3) infinite;
+}
+
+/* HP 경고 비네트 (FX11) */
+#hp-warning-vignette {
+  position:fixed; inset:0; z-index:7000; pointer-events:none;
+  box-shadow:inset 0 0 120px 30px rgba(200,30,25,.9);
+  background:radial-gradient(ellipse 90% 90% at 50% 50%,transparent 55%,rgba(180,25,20,.5));
+  display:none;
+}
+#hp-warning-vignette.active { display:block; }
+/* Google 로그인 버튼 */
+.btn-google {
+  display:flex; align-items:center; gap:10px; justify-content:center;
+  width:220px; height:44px; margin:0 auto;
+  background:#fff; color:#222; border:none;
+  font-family:'Galmuri11',sans-serif; font-size:14px;
+  box-shadow:inset 2px 2px 0 rgba(255,255,255,.9),inset -3px -4px 0 rgba(0,0,0,.15),0 4px 0 #aaa,0 6px 0 #000;
+  cursor:pointer; letter-spacing:.5px;
+}
+.btn-google:active { transform:translateY(2px); box-shadow:inset 2px 2px 0 rgba(255,255,255,.9),inset -3px -4px 0 rgba(0,0,0,.15),0 2px 0 #aaa,0 3px 0 #000; }
+.btn-google .google-g { font-weight:700; font-size:16px; color:#4285f4; font-family:Arial,sans-serif; }
