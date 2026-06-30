@@ -25,7 +25,7 @@ io.on('connection', (socket) => {
       const decoded = await verifyToken(idToken);
       const data = await getPlayerData(decoded.uid);
       sessions.set(socket.id, { uid: decoded.uid, name: decoded.name || '플레이어', room: null, playerIdx: null });
-      socket.emit('auth_ok', { uid: decoded.uid, displayName: decoded.name, money: data.money });
+      socket.emit('auth_ok', { uid: decoded.uid, displayName: decoded.name, money: data.money, bestRound: data.bestRound || 0 });
     } catch {
       socket.emit('error', { code: 'AUTH_FAILED', message: '인증 실패' });
     }
