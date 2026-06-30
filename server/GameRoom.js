@@ -5,8 +5,8 @@ const { updateMatchResult } = require('./firebase');
 const GAME_CONFIG = {
   PLAYER_HP: 100,
   STARTING_COINS: 100,
-  ROUND_DURATION_MS: 40_000,
-  SHOP_DURATION_MS: 20_000,
+  ROUND_DURATION_MS: 60_000,
+  SHOP_DURATION_MS: 40_000,
   BOT_TICK_INTERVAL_MS: 6_000, // ~6 actions per round, matches simulate.js MAX_ACTIONS_PER_ROUND
   BASE_ENHANCE_COOLDOWN_MS: 1500, // 기본 강화 쿨타임 — c002/c019/c021 카드가 이 값에 영향
   ROUND_COIN_GRANTS: [0, 100, 120, 140, 160, 180, 200, 220, 240], // index=라운드(1~8+)

@@ -52,13 +52,26 @@
       const card = hand[i];
       if (!card) return;
       slot.innerHTML = (typeof FX !== 'undefined') ? FX.buildCardHTML(card) : card.name;
-      slot.style.cssText = 'width:136px;height:180px;flex:none;box-sizing:border-box;cursor:' + (card.type==='active'?'pointer':'default') + ';';
+      slot.style.cssText = 'width:136px;height:180px;flex:none;box-sizing:border-box;cursor:' + (card.type==='active'?'grab':'default') + ';';
       slot.title = card.description ?? '';
       if (card.type === 'active') {
-        slot.addEventListener('click', () => {
-          if (confirm(`[액티브] ${card.name}\n${card.description ?? ''}\n\n발동하겠습니까?`)) {
-            getSocket()?.emit('use_card', { cardId: card.id });
-          }
+        // 드래그해서 전투 영역 위로 놓으면 카드 발동 (hand-bar 바깥 = 전투 영역)
+        slot.addEventListener('mousedown', (e) => {
+          if (e.button !== 0) return;
+          e.preventDefault();
+          if (typeof FX === 'undefined') return;
+          const handBar = document.getElementById('hand-bar');
+          const mySword = document.getElementById('my-sword-art');
+          FX.dragCard(
+            slot,
+            (ev) => {
+              if (!handBar) return false;
+              const hbr = handBar.getBoundingClientRect();
+              return ev.clientY < hbr.top;
+            },
+            () => getSocket()?.emit('use_card', { cardId: card.id }),
+            () => mySword
+          );
         });
       }
     });

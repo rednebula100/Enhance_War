@@ -117,10 +117,26 @@
       const wrapper = document.createElement('div');
       const dealDelay = (i * 0.07).toFixed(2);
       const dealAnim = withDealAnim ? 'fx_cardDeal .4s steps(5) ' + dealDelay + 's both' : '';
-      wrapper.style.cssText = 'cursor:pointer;flex:none;width:136px;height:180px;' + (dealAnim ? 'animation:' + dealAnim + ';' : '');
+      wrapper.style.cssText = 'cursor:grab;flex:none;width:136px;height:180px;' + (dealAnim ? 'animation:' + dealAnim + ';' : '');
       wrapper.title = card.name + '\n' + (card.description || '');
       wrapper.innerHTML = (typeof FX !== 'undefined') ? FX.buildCardHTML(card) : card.name;
-      wrapper.addEventListener('click', () => getSocket()?.emit('buy_card', { cardId: card.id }));
+      // 드래그로 손패에 놓으면 구매 (손패 영역이 drop zone)
+      wrapper.addEventListener('mousedown', (e) => {
+        if (e.button !== 0) return;
+        e.preventDefault();
+        if (typeof FX === 'undefined') return;
+        const handBar = document.getElementById('shop-hand-bar');
+        FX.dragCard(
+          wrapper,
+          (ev) => {
+            if (!handBar) return false;
+            const r = handBar.getBoundingClientRect();
+            return ev.clientX >= r.left && ev.clientX <= r.right && ev.clientY >= r.top && ev.clientY <= r.bottom;
+          },
+          () => getSocket()?.emit('buy_card', { cardId: card.id }),
+          () => handBar
+        );
+      });
       shelf.appendChild(wrapper);
 
       if (card.rarity === 7 && typeof FX !== 'undefined') {
@@ -153,7 +169,7 @@
     }
   }
 
-  function onBuyCardResult({ success, absorbed, leveled, coins, hand: newHand, reason }) {
+  function onBuyCardResult({ success, absorbed, leveled, coins, hand: newHand, cards, reason }) {
     if (!success) {
       const msg = reason === 'HAND_FULL'          ? '손패가 꽉 찼습니다 (최대 8장)'
                 : reason === 'INSUFFICIENT_COINS' ? '코인이 부족합니다'
@@ -168,6 +184,8 @@
     hand = newHand;
     _syncCoins(currentCoins);
     _renderHand();
+    // 서버가 보낸 갱신된 진열대 목록으로 즉시 재렌더 (구매한 카드 제거)
+    if (cards !== undefined) currentCards = cards;
     _renderShelf(currentCards);
     const hcEl = document.getElementById('shop-hand-count');
     if (hcEl) hcEl.textContent = '손패 ' + (hand ? hand.length : 0) + ' / 8';
@@ -246,17 +264,57 @@
   function onFreezeResult({ success, frozen, freezeLeft, reason }) {
     if (!success) {
       _showToast(reason === 'NO_USES' ? '얼리기 횟수를 다 사용했습니다' : '얼리기 불가');
+      _triggerAnim(document.getElementById('btn-shop-freeze'), 'fx_denyShake .3s steps(4) both');
       return;
     }
+    // 버튼 상태 갱신 (Battle.dc.html verbatim)
     const lbl = document.getElementById('freeze-label');
     const leftEl = document.getElementById('freeze-left');
-    if (lbl) lbl.textContent = frozen ? '🔒 얼림' : '❄ 얼리기';
+    const btn = document.getElementById('btn-shop-freeze');
+    if (lbl) lbl.textContent = frozen ? '❄ 해제' : '❄ 얼리기';
     if (leftEl) {
       leftEl.textContent = freezeLeft;
       _triggerAnim(leftEl, 'fx_freezeNumPop .5s steps(5) both');
     }
-    const btn = document.getElementById('btn-shop-freeze');
-    if (btn) btn.style.opacity = frozen ? '0.75' : '1';
+    if (btn) {
+      btn.style.background = frozen ? 'linear-gradient(#6fdcd6,#2fa9a3)' : 'linear-gradient(#46c7c2,#239b96)';
+    }
+
+    // Frost overlay on shelf (Battle.dc.html frostOverlay verbatim)
+    const shelf = document.getElementById('shop-shelf');
+    if (shelf) {
+      const prev = shelf.querySelector('.frost-overlay');
+      if (frozen) {
+        if (prev) prev.remove();
+        const ov = document.createElement('div');
+        ov.className = 'frost-overlay';
+        ov.style.cssText = 'position:absolute;inset:0;z-index:8;pointer-events:none;';
+        // blue tint background
+        const bg = document.createElement('div');
+        bg.style.cssText = 'position:absolute;inset:0;background:linear-gradient(rgba(150,225,235,.22),rgba(90,170,200,.14));box-shadow:inset 0 0 36px rgba(180,235,245,.45);border:2px solid rgba(190,240,250,.5);animation:fx_frostSpread .45s steps(4) both;';
+        ov.appendChild(bg);
+        // 10 crystal icons — positions & stagger from Battle.dc.html
+        for (let i = 0; i < 10; i++) {
+          const cr = document.createElement('div');
+          const delay = (i * 0.03).toFixed(2);
+          cr.style.cssText = 'position:absolute;left:' + ((6 + (i * 9.3) % 90).toFixed(1)) + '%;top:' + ((10 + (i * 31) % 78).toFixed(1)) + '%;color:#cdfaff;font-family:Galmuri7,monospace;font-size:12px;text-shadow:0 0 5px #7fe4dc;animation:fx_frostSpread .5s steps(4) ' + delay + 's both;';
+          cr.textContent = '❉';
+          ov.appendChild(cr);
+        }
+        // FROZEN label
+        const lbl2 = document.createElement('div');
+        lbl2.style.cssText = 'position:absolute;left:50%;top:50%;z-index:9;font-family:Galmuri11,sans-serif;font-size:22px;color:#dffaff;text-shadow:0 0 12px rgba(127,228,220,.9),2px 2px 0 #1a3a44;letter-spacing:3px;white-space:nowrap;animation:fx_frostLabel .5s steps(6) both;';
+        lbl2.textContent = '❄ FROZEN ❄';
+        ov.appendChild(lbl2);
+        shelf.appendChild(ov);
+      } else {
+        // 해제: fx_frostFade로 페이드아웃
+        if (prev) {
+          prev.style.animation = 'fx_frostFade .4s steps(4) both';
+          setTimeout(() => { if (prev.parentNode) prev.remove(); }, 450);
+        }
+      }
+    }
   }
 
   return { init, onShopStart, onBuyCardResult, onSellHandCardResult, onHandUpdate, onUpgradeResult, onRerollResult, onFreezeResult };

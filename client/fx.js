@@ -523,5 +523,50 @@ const FX = (() => {
     }
   }
 
-  return { buildCardHTML, success, fail, coinChange, sell, roundStart, shopOpen, combat, sevenStarReveal, cardLevelUp, hpWarning };
+  // ── 드래그 카드 인터랙션 ──────────────────────────────────────────────────
+  // getIsOver(e): (MouseEvent) => bool — 드롭 유효 여부
+  // onDrop: () => void — 드롭 성공 시 호출
+  // getHighlightEl: () => HTMLElement | null — hover 시 강조할 요소
+  function dragCard(sourceEl, getIsOver, onDrop, getHighlightEl) {
+    const root = el('game-root');
+    if (!root) return;
+    const rootRect = root.getBoundingClientRect();
+    const scale = rootRect.width / 1280;
+
+    // 고스트 생성
+    const ghost = document.createElement('div');
+    ghost.style.cssText = 'position:absolute;z-index:9999;pointer-events:none;opacity:0.88;width:' + sourceEl.offsetWidth + 'px;height:' + sourceEl.offsetHeight + 'px;';
+    ghost.innerHTML = sourceEl.innerHTML;
+    root.appendChild(ghost);
+
+    let wasOver = false;
+
+    const move = (e) => {
+      const cx = (e.clientX - rootRect.left) / scale;
+      const cy = (e.clientY - rootRect.top) / scale;
+      ghost.style.left = (cx - sourceEl.offsetWidth / 2) + 'px';
+      ghost.style.top  = (cy - sourceEl.offsetHeight / 2) + 'px';
+
+      const over = getIsOver(e);
+      const hlEl = getHighlightEl ? getHighlightEl() : null;
+      if (hlEl && over !== wasOver) {
+        hlEl.style.boxShadow = over ? 'inset 0 0 0 3px #5fd6c4, 0 0 16px rgba(95,214,196,.55)' : '';
+        wasOver = over;
+      }
+    };
+
+    const up = (e) => {
+      document.removeEventListener('mousemove', move);
+      document.removeEventListener('mouseup', up);
+      ghost.remove();
+      const hlEl = getHighlightEl ? getHighlightEl() : null;
+      if (hlEl) hlEl.style.boxShadow = '';
+      if (getIsOver(e)) onDrop();
+    };
+
+    document.addEventListener('mousemove', move);
+    document.addEventListener('mouseup', up);
+  }
+
+  return { buildCardHTML, success, fail, coinChange, sell, roundStart, shopOpen, combat, sevenStarReveal, cardLevelUp, hpWarning, dragCard };
 })();
