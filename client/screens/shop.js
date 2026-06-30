@@ -229,29 +229,29 @@
     if (hcEl) hcEl.textContent = '손패 ' + (hand ? hand.length : 0) + ' / 8';
   }
 
-  function onUpgradeResult({ success, shopLevel: newLv, coins, cards }) {
-    if (!success) return;
+  function onUpgradeResult({ success, shopLevel: newLv, coins, cards, reason }) {
+    if (!success) {
+      _showToast(reason === 'INSUFFICIENT_COINS' ? '코인이 부족합니다' : '업그레이드 불가');
+      return;
+    }
     shopLevel = newLv;
     currentCoins = coins ?? currentCoins;
     _syncCoins(currentCoins);
     if (cards) _renderShelf(cards);
     const hcEl = document.getElementById('shop-hand-count');
     if (hcEl) hcEl.textContent = '손패 ' + (hand ? hand.length : 0) + ' / 8';
-    // 업그레이드 버튼 텍스트 갱신
+    // 레벨 표시 + 업그레이드 버튼 innerHTML 재렌더 (onShopStart와 동일 방식)
     const lvDisp = document.getElementById('shop-level-display');
-    if (lvDisp) lvDisp.textContent = shopLevel;
+    if (lvDisp) lvDisp.textContent = 'Lv.' + shopLevel;
     const upgBtn = document.getElementById('btn-upg-shop');
-    const costEl = document.getElementById('shop-upg-cost');
-    const UPGRADE_COSTS = [null, 300, 600, 1000, 1600, 2500, null];
-    const uc = UPGRADE_COSTS[shopLevel];
+    const uc = SHOP_UPGRADE_COSTS[shopLevel];
     if (upgBtn) {
-      const lbl = upgBtn.querySelector('span:first-child');
-      if (lbl) lbl.textContent = uc ? 'Lv' + (shopLevel + 1) + ' ⬆' : '최대 등급';
+      upgBtn.innerHTML = uc
+        ? 'Lv' + (shopLevel + 1) + ' 업그레이드<br><span style="font-size:8px;">' + uc + '코인</span>'
+        : '최대 등급';
     }
-    if (costEl) costEl.textContent = uc ? uc + ' 코인' : '';
     // fx_lvNumPop on level number, fx_lvGlow on upgrade button (Battle.dc.html verbatim)
-    const lvNumEl = document.getElementById('shop-level-display');
-    _triggerAnim(lvNumEl, 'fx_lvNumPop .5s steps(5) both');
+    _triggerAnim(lvDisp, 'fx_lvNumPop .5s steps(5) both');
     _triggerAnim(upgBtn, 'fx_lvGlow 1s steps(5) both');
   }
 
