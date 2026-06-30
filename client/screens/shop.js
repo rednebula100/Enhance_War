@@ -93,26 +93,16 @@
     if (!shelf) return;
     shelf.innerHTML = '';
 
-    const rarityColors = ['','#9aa0ac','#4fbf66','#3f8be0','#a865e8','#f5972a','#e8463f',null];
     currentCards.forEach(card => {
-      const el = document.createElement('div');
-      const isR7 = card.rarity === 7;
-      el.className = `shop-card rarity-${card.rarity}`;
-      const gemColor = rarityColors[card.rarity] || '#9aa0ac';
-      if (!isR7) { el.style.background = gemColor; el.style.boxShadow = '3px 3px 0 rgba(0,0,0,.55)'; }
-      el.innerHTML =
-        '<div class="shop-card-inner">'
-        + '<div class="card-cost-badge" style="background:' + (isR7 ? '#ffd84d' : gemColor) + ';width:20px;height:20px;font-size:10px;">' + card.cost + '</div>'
-        + '<div class="card-art-area" style="height:52px;margin-top:18px;">' + card.name.substring(0, 2) + '</div>'
-        + '<div class="card-name" style="font-size:10px;margin-top:4px;">' + card.name + '</div>'
-        + '<div class="card-divider"></div>'
-        + '<div class="card-effect" style="font-size:8px;">' + (card.description || '') + '</div>'
-        + '</div>';
-      el.addEventListener('click', () => getSocket()?.emit('buy_card', { cardId: card.id }));
-      shelf.appendChild(el);
+      const wrapper = document.createElement('div');
+      wrapper.style.cssText = 'cursor:pointer;flex:none;width:136px;height:180px;';
+      wrapper.title = card.name + '\n' + (card.description || '');
+      wrapper.innerHTML = (typeof FX !== 'undefined') ? FX.buildCardHTML(card) : card.name;
+      wrapper.addEventListener('click', () => getSocket()?.emit('buy_card', { cardId: card.id }));
+      shelf.appendChild(wrapper);
 
-      if (isR7 && typeof FX !== 'undefined') {
-        setTimeout(() => FX.sevenStarReveal(), 200);
+      if (card.rarity === 7 && typeof FX !== 'undefined') {
+        setTimeout(() => FX.sevenStarReveal(wrapper), 200);
       }
     });
   }
@@ -121,23 +111,13 @@
     const bar = document.getElementById('shop-hand-bar');
     if (!bar) return;
     bar.innerHTML = '';
-    const rarityColors = ['','#9aa0ac','#4fbf66','#3f8be0','#a865e8','#f5972a','#e8463f',null];
     for (let i = 0; i < 8; i++) {
       const slot = document.createElement('div');
       const card = hand[i];
       if (card) {
-        const isR7 = card.rarity === 7;
-        const gemColor = rarityColors[card.rarity] || '#9aa0ac';
-        slot.className = 'hand-slot filled rarity-' + card.rarity;
-        if (!isR7) { slot.style.background = gemColor; slot.style.boxShadow = '3px 3px 0 rgba(0,0,0,.55)'; }
-        slot.innerHTML =
-          '<div class="hand-slot-inner">'
-          + '<div class="card-cost-badge" style="background:' + (isR7 ? '#ffd84d' : gemColor) + '">' + (card.cost || '') + '</div>'
-          + '<div class="card-art-area">' + card.name.substring(0, 2) + '</div>'
-          + '<div class="card-name">' + card.name + '</div>'
-          + '<div class="card-divider"></div>'
-          + '<div class="card-effect">' + (card.description || '') + '</div></div>';
-        slot.title = `${card.name}\n${card.description ?? ''}\n\n클릭하여 판매 (+${card.sellPrice ?? Math.floor(card.cost * 0.5)}코인)`;
+        slot.style.cssText = 'width:136px;height:180px;flex:none;box-sizing:border-box;cursor:pointer;';
+        slot.innerHTML = (typeof FX !== 'undefined') ? FX.buildCardHTML(card) : card.name;
+        slot.title = card.name + '\n' + (card.description ?? '') + '\n\n클릭하여 판매 (+' + (card.sellPrice ?? Math.floor(card.cost * 0.5)) + '코인)';
         slot.addEventListener('click', () => {
           const sp = card.sellPrice ?? Math.floor(card.cost * 0.5);
           if (confirm(`'${card.name}' 카드를 판매하겠습니까?\n(+${sp}코인)`)) {
@@ -145,8 +125,7 @@
           }
         });
       } else {
-        slot.className = 'hand-slot rarity-0';
-        slot.style.cssText = 'background:#2a2830;box-shadow:inset 0 0 0 1px #3a3a4a;';
+        slot.style.cssText = 'width:136px;height:180px;flex:none;box-sizing:border-box;background:#1e1c24;border:2px solid #2a2836;box-shadow:inset 0 0 0 1px #34303c;';
       }
       bar.appendChild(slot);
     }

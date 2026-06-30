@@ -1,6 +1,8 @@
 ﻿/* ── BASE ── */
 * { -webkit-font-smoothing: none; box-sizing: border-box; }
 html, body { margin: 0; padding: 0; overflow: hidden; background: #0e0c12; }
+button { appearance: none; -webkit-appearance: none; }
+button:disabled { opacity: 1; }
 #game-root {
   position: absolute;
   width: 1280px; height: 720px;

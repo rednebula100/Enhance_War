@@ -28,40 +28,24 @@
     bar.innerHTML = '';
     for (let i = 0; i < 8; i++) {
       const slot = document.createElement('div');
-      slot.className = 'hand-slot rarity-0';
-      slot.style.cssText = 'background:#2a2830;box-shadow:inset 0 0 0 1px #3a3a4a;';
+      slot.style.cssText = 'width:136px;height:180px;flex:none;background:#1e1c24;border:2px solid #2a2836;box-shadow:inset 0 0 0 1px #34303c;box-sizing:border-box;';
       slot.dataset.index = i;
-      const inner = document.createElement('div');
-      inner.className = 'hand-slot-inner';
-      slot.appendChild(inner);
       bar.appendChild(slot);
     }
   }
 
   function _updateHand(hand, containerId) {
     _buildHandSlots(containerId);
-    const slots = document.querySelectorAll(`#${containerId} .hand-slot`);
+    const bar = document.getElementById(containerId);
+    if (!bar) return;
+    const slots = bar.querySelectorAll('div[data-index]');
     slots.forEach((slot, i) => {
       const card = hand[i];
       if (!card) return;
-      const rarityColors = ['','#9aa0ac','#4fbf66','#3f8be0','#a865e8','#f5972a','#e8463f',null];
-      const isR7 = card.rarity === 7;
-      slot.className = `hand-slot filled rarity-${card.rarity}`;
-      if (isR7) slot.style.cssText = '';
-      else { slot.style.background = rarityColors[card.rarity] || '#9aa0ac'; slot.style.boxShadow = '3px 3px 0 rgba(0,0,0,.55)'; }
-      const lvTag = card.xpLevel > 1 ? ` Lv${card.xpLevel}` : '';
-      const gemColor = rarityColors[card.rarity] || '#9aa0ac';
-      slot.innerHTML = `
-        <div class="hand-slot-inner">
-          <div class="card-cost-badge" style="background:${isR7?'#ffd84d':gemColor}">${card.cost ?? ''}</div>
-          <div class="card-art-area">${card.art || card.name.substring(0,2)}</div>
-          <div class="card-name">${card.name}${lvTag}</div>
-          <div class="card-divider"></div>
-          <div class="card-effect">${card.description ?? ''}</div>
-        </div>`;
+      slot.innerHTML = (typeof FX !== 'undefined') ? FX.buildCardHTML(card) : card.name;
+      slot.style.cssText = 'width:136px;height:180px;flex:none;box-sizing:border-box;cursor:' + (card.type==='active'?'pointer':'default') + ';';
       slot.title = card.description ?? '';
       if (card.type === 'active') {
-        slot.classList.add('active-card');
         slot.addEventListener('click', () => {
           if (confirm(`[액티브] ${card.name}\n${card.description ?? ''}\n\n발동하겠습니까?`)) {
             getSocket()?.emit('use_card', { cardId: card.id });
@@ -142,16 +126,18 @@
     const oppDurTxt = document.getElementById('opp-dur-text'); if (oppDurTxt) oppDurTxt.textContent = 50 + level * 15;
   }
 
-  // FX15: rAF 기반 쿨다운 (버튼 내부 bottom-up fill — design-reference verbatim)
+  // FX15: rAF 기반 쿨다운 — FX15 verbatim (버튼 외부 sibling overlay)
   function _startCooldown(ms) {
     const btn = document.getElementById('btn-enhance');
+    const overlay = document.getElementById('enhance-cooldown-overlay');
     const fill = document.getElementById('enhance-cooldown-fill');
     const scan = document.getElementById('enhance-cooldown-scan');
     if (!btn) return;
     cancelAnimationFrame(_cooldownRAF);
     btn.disabled = true;
-    if (fill) { fill.style.height = '0%'; }
-    if (scan) { scan.style.display = 'block'; scan.style.bottom = '0%'; }
+    if (overlay) overlay.style.display = 'block';
+    if (fill) fill.style.height = '0%';
+    if (scan) scan.style.bottom = '0%';
 
     const t0 = performance.now();
     const step = () => {
@@ -163,8 +149,8 @@
         _cooldownRAF = requestAnimationFrame(step);
       } else {
         btn.disabled = false;
+        if (overlay) overlay.style.display = 'none';
         if (fill) fill.style.height = '0%';
-        if (scan) scan.style.display = 'none';
       }
     };
     _cooldownRAF = requestAnimationFrame(step);
@@ -210,8 +196,8 @@
     cancelAnimationFrame(_cooldownRAF);
     const btn = document.getElementById('btn-enhance');
     if (btn) btn.disabled = false;
+    const ov = document.getElementById('enhance-cooldown-overlay'); if (ov) ov.style.display = 'none';
     const fill3 = document.getElementById('enhance-cooldown-fill'); if (fill3) fill3.style.height = '0%';
-    const scan3 = document.getElementById('enhance-cooldown-scan'); if (scan3) scan3.style.display = 'none';
     document.getElementById('btn-sell').disabled = false;
     _startTimer(timeLeft, 'timer-bar', 'timer-text');
     _updateMyState({ level: myState.level, combo: myState.combo, coins: myState.coins });
