@@ -75,7 +75,12 @@ function connectSocket(idToken) {
   socket.on('use_card_result', (data) => Game.onUseCardResult(data));
   socket.on('hand_update',     (data) => { Game.onHandUpdate(data); Shop.onHandUpdate(data); });
   socket.on('card_effect',     (data) => Game.onCardEffect(data));
-  socket.on('match_end',     (data) => { Result.onMatchEnd(data); showScreen('screen-result'); });
+  socket.on('pre_combat',    ()     => Game.onPreCombat());
+socket.on('timer_skip',    (data) => {
+  if (data.phase === 'ROUND') Game.onTimerSkip(data);
+  else if (data.phase === 'SHOP') Shop.onTimerSkip(data);
+});
+socket.on('match_end',     (data) => { Result.onMatchEnd(data); showScreen('screen-result'); });
 }
 
 // ── Firebase Auth ─────────────────────────────

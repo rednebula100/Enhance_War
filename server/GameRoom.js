@@ -6,6 +6,8 @@ const GAME_CONFIG = {
   PLAYER_HP: 100,
   STARTING_COINS: 100,
   ROUND_DURATION_MS: 60_000,
+  PRE_COMBAT_DELAY_MS: 1000,   // 라운드 타이머 → 교전 시작 전 정적
+  POST_COMBAT_DELAY_MS: 2500,  // 교전 후 상점 전환 전 결과 열람 시간
   SHOP_DURATION_MS: 40_000,
   BOT_TICK_INTERVAL_MS: 6_000, // ~6 actions per round, matches simulate.js MAX_ACTIONS_PER_ROUND
   BASE_ENHANCE_COOLDOWN_MS: 1500, // 기본 강화 쿨타임 — c002/c019/c021 카드가 이 값에 영향
@@ -131,6 +133,7 @@ class GameRoom {
     this.phase = null;
     this.timer = null;
     this.botInterval = null;
+    this.phaseStartMs = 0;
   }
 
   start() {
@@ -331,6 +334,24 @@ class GameRoom {
     });
   }
 
+  handleSkipRound(playerIdx) {
+    if (this.phase !== 'ROUND') return;
+    const remaining = GAME_CONFIG.ROUND_DURATION_MS - (Date.now() - this.phaseStartMs);
+    if (remaining <= 5000) return;
+    clearTimeout(this.timer);
+    this.timer = setTimeout(() => this._preCombat(), 5000);
+    [0, 1].forEach(i => this._emit(i, 'timer_skip', { phase: 'ROUND', timeLeft: 5 }));
+  }
+
+  handleSkipShop(playerIdx) {
+    if (this.phase !== 'SHOP') return;
+    const remaining = GAME_CONFIG.SHOP_DURATION_MS - (Date.now() - this.phaseStartMs);
+    if (remaining <= 5000) return;
+    clearTimeout(this.timer);
+    this.timer = setTimeout(() => this._startRound(), 5000);
+    [0, 1].forEach(i => this._emit(i, 'timer_skip', { phase: 'SHOP', timeLeft: 5 }));
+  }
+
   handleDisconnect(playerIdx) {
     if (this.phase === 'ENDED') return;
     clearTimeout(this.timer);
@@ -339,7 +360,13 @@ class GameRoom {
     this._endMatch();
   }
 
-  // ── Private ──────────────────────────────────────────────────
+  // __ Private ______________________________________________________
+
+  _preCombat() {
+    [0, 1].forEach(i => this._emit(i, 'pre_combat', {}));
+    clearTimeout(this.botInterval);
+    setTimeout(() => this._startCombat(), GAME_CONFIG.PRE_COMBAT_DELAY_MS);
+  }
 
   // 패시브 카드 효과 집계
   _passiveMods(idx) {
@@ -443,7 +470,8 @@ class GameRoom {
       scheduleBot();
     }
 
-    this.timer = setTimeout(() => this._startCombat(), GAME_CONFIG.ROUND_DURATION_MS);
+    this.phaseStartMs = Date.now();
+    this.timer = setTimeout(() => this._preCombat(), GAME_CONFIG.ROUND_DURATION_MS);
   }
 
   _botTick(botIdx) {
@@ -584,7 +612,7 @@ class GameRoom {
       }
       animMs += 700; // _wait(150) + _wait(550)
     }
-    const shopDelay = Math.max(800, animMs + 300);
+    const shopDelay = Math.max(800, animMs + 300) + GAME_CONFIG.POST_COMBAT_DELAY_MS;
 
     if (this.swords[0].hp <= 0 || this.swords[1].hp <= 0) {
       this._endMatch();
@@ -640,6 +668,7 @@ class GameRoom {
       });
     });
 
+    this.phaseStartMs = Date.now();
     this.timer = setTimeout(() => this._startRound(), GAME_CONFIG.SHOP_DURATION_MS);
   }
 

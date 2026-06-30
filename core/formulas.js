@@ -6,10 +6,11 @@
   // enhanceSuccessRate(n) = BASE_SUCCESS_RATE + SUCCESS_RATE_RANGE * RATE_DECAY^n
   BASE_SUCCESS_RATE: 0.05,
   SUCCESS_RATE_RANGE: 0.90,
-  RATE_DECAY: 0.82,
+  RATE_DECAY: 0.88,
 
-  // sellValue(level, combo) = level * LEVEL_COIN_VALUE * (1 + combo * COMBO_BONUS)
-  LEVEL_COIN_VALUE: 50,
+  // sellValue(level, combo) = level^LEVEL_COIN_EXPONENT * LEVEL_COIN_VALUE * (1 + combo * COMBO_BONUS)
+  LEVEL_COIN_VALUE: 18,
+  LEVEL_COIN_EXPONENT: 1.7,
   COMBO_BONUS: 0.15,
 
   // attackPower(level) = level * ATK_PER_LEVEL
@@ -33,7 +34,8 @@ function enhanceSuccessRate(level) {
 }
 
 function sellValue(level, combo) {
-  return (level * BALANCE_CONFIG.LEVEL_COIN_VALUE) * (1 + combo * BALANCE_CONFIG.COMBO_BONUS);
+  const base = Math.pow(level, BALANCE_CONFIG.LEVEL_COIN_EXPONENT) * BALANCE_CONFIG.LEVEL_COIN_VALUE;
+  return base * (1 + combo * BALANCE_CONFIG.COMBO_BONUS);
 }
 
 function attackPower(level) {

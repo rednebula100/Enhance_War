@@ -130,7 +130,7 @@
     const coinsEl = document.getElementById('my-coins');    if (coinsEl) coinsEl.textContent = Math.floor(state.myCoins);
     const comboEl = document.getElementById('my-combo');    if (comboEl) comboEl.textContent = `콤보 ${state.myCombo}`;
 
-    const sellVal = Math.floor(state.myLevel * 50 * (1 + state.myCombo * 0.15));
+    const sellVal = Math.floor(Math.pow(state.myLevel, 1.7) * 18 * (1 + state.myCombo * 0.15));
     const sp = document.getElementById('sell-preview');
     if (sp) sp.textContent = state.myLevel > 0 ? `판매 시 +${sellVal}코인` : '';
 
@@ -141,7 +141,7 @@
     const rateLbl = document.getElementById('enhance-rate-label');
     if (costLbl || rateLbl) {
       const cost = Math.round(10 * Math.pow(1.25, state.myLevel));
-      const rate = Math.round(5 + 90 * Math.pow(0.82, state.myLevel));
+      const rate = Math.round(5 + 90 * Math.pow(0.88, state.myLevel));
       if (costLbl) { costLbl.textContent = cost + 'c'; costLbl.style.color = state.myCoins >= cost ? '#ffd76a' : '#e87a72'; }
       if (rateLbl) { rateLbl.textContent = rate + '%'; rateLbl.style.color = rate >= 60 ? '#7fe47c' : rate >= 30 ? '#f5a93a' : '#e87a72'; }
     }
@@ -229,6 +229,8 @@
     const ov = document.getElementById('enhance-cooldown-overlay'); if (ov) ov.style.display = 'none';
     const fill3 = document.getElementById('enhance-cooldown-fill'); if (fill3) fill3.style.height = '0%';
     document.getElementById('btn-sell').disabled = false;
+    const skipRoundBtn = document.getElementById('btn-skip-round');
+    if (skipRoundBtn) skipRoundBtn.disabled = false;
     _startTimer(timeLeft, 'timer-bar', 'timer-text');
     _updateMyState({ level: myState.level, combo: myState.combo, coins: myState.coins });
     _updateOppState({ level: opponentState.level, atk: opponentState.atk });
@@ -251,6 +253,22 @@
       if (success) FX.success(combo);
       else         FX.fail();
     }
+  }
+
+  function onPreCombat() {
+    clearInterval(timerInterval);
+    const txt = document.getElementById('timer-text');
+    const bar = document.getElementById('timer-bar');
+    if (txt) txt.textContent = '⚔';
+    if (bar) bar.style.width = '0%';
+    const skipBtn = document.getElementById('btn-skip-round');
+    if (skipBtn) skipBtn.disabled = true;
+  }
+
+  function onTimerSkip({ timeLeft }) {
+    _startTimer(timeLeft, 'timer-bar', 'timer-text');
+    const skipBtn = document.getElementById('btn-skip-round');
+    if (skipBtn) skipBtn.disabled = true;
   }
 
   function onSellResult({ gained, coins, hand }) {
@@ -300,5 +318,6 @@
     init, onMatchFound, onRoundStart,
     onEnhanceResult, onSellResult, onOpponentUpdate, onRoundEnd,
     onUseCardResult, onHandUpdate, onCardEffect,
+    onPreCombat, onTimerSkip,
   };
 })();

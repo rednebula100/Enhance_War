@@ -29,6 +29,11 @@
       _triggerAnim(document.getElementById('btn-shop-freeze'), 'fx_btnPress .3s steps(3) both');
       getSocket()?.emit('freeze_shop');
     });
+    document.getElementById('btn-skip-shop')?.addEventListener('click', () => {
+      const btn = document.getElementById('btn-skip-shop');
+      if (btn) btn.disabled = true;
+      getSocket()?.emit('skip_shop');
+    });
   }
 
   function _syncCoins(c) {
@@ -54,6 +59,8 @@
   }
 
   function onShopStart({ timeLeft, cards, myState }) {
+    const skipShopBtn = document.getElementById('btn-skip-shop');
+    if (skipShopBtn) skipShopBtn.disabled = false;
     currentCoins = myState?.coins ?? currentCoins;
     hand         = myState?.hand  ?? hand;
     shopLevel    = myState?.shopLevel ?? shopLevel;
@@ -92,18 +99,23 @@
 
   }
 
+  let shopTimerIv = null;
+  let shopTimerMax = 40;
+
   function _startShopTimer(seconds) {
+    clearInterval(shopTimerIv);
+    shopTimerMax = seconds;
     const bar = document.getElementById('shop-timer-bar');
     const txt = document.getElementById('shop-timer-text');
     if (!bar || !txt) return;
     bar.style.width = '100%';
     txt.textContent = seconds;
     let left = seconds;
-    const iv = setInterval(() => {
+    shopTimerIv = setInterval(() => {
       left--;
       txt.textContent = Math.max(0, left);
-      bar.style.width = Math.max(0, (left / seconds) * 100) + '%';
-      if (left <= 0) clearInterval(iv);
+      bar.style.width = Math.max(0, (left / shopTimerMax) * 100) + '%';
+      if (left <= 0) clearInterval(shopTimerIv);
     }, 1000);
   }
 
@@ -317,5 +329,11 @@
     }
   }
 
-  return { init, onShopStart, onBuyCardResult, onSellHandCardResult, onHandUpdate, onUpgradeResult, onRerollResult, onFreezeResult };
+  function onTimerSkip({ timeLeft }) {
+    _startShopTimer(timeLeft);
+    const skipBtn = document.getElementById('btn-skip-shop');
+    if (skipBtn) skipBtn.disabled = true;
+  }
+
+  return { init, onShopStart, onBuyCardResult, onSellHandCardResult, onHandUpdate, onUpgradeResult, onRerollResult, onFreezeResult, onTimerSkip };
 })();
