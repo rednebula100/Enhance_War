@@ -119,14 +119,14 @@ const FX = (() => {
     const accent = tier === 3 ? '#ffd24d' : '#ffbe5c';
     if (tier >= 2) {
       const ring = document.createElement('div');
-      ring.style.cssText = 'position:absolute;left:' + cx + ';top:' + cy + ';width:70px;height:70px;margin-left:-35px;margin-top:-35px;border:4px solid ' + accent + ';border-radius:2px;box-shadow:0 0 12px ' + accent + ';animation:fx_ring .55s steps(6) .28s both;';
+      ring.style.cssText = 'position:absolute;left:' + cx + ';top:' + cy + ';width:70px;height:70px;border:4px solid ' + accent + ';border-radius:2px;box-shadow:0 0 12px ' + accent + ';animation:fx_ring .55s steps(6) .28s both;';
       lyr.appendChild(ring);
     }
 
     // fire pillar (tier3) — FX01 verbatim
     if (tier === 3) {
       const pillar = document.createElement('div');
-      pillar.style.cssText = 'position:absolute;left:' + cx + ';bottom:10%;width:70px;height:320px;background:linear-gradient(rgba(255,220,120,.85),rgba(255,140,50,.5) 50%,transparent);transform-origin:bottom center;margin-left:-35px;animation:fx_pillar .6s steps(7) .28s both;';
+      pillar.style.cssText = 'position:absolute;left:' + cx + ';bottom:10%;width:70px;height:320px;background:linear-gradient(rgba(255,220,120,.85),rgba(255,140,50,.5) 50%,transparent);transform-origin:bottom center;animation:fx_pillar .6s steps(7) .28s both;';
       lyr.appendChild(pillar);
     }
 
@@ -321,14 +321,14 @@ const FX = (() => {
 
         // Clash
         const clash = document.createElement('div');
-        clash.style.cssText = 'position:absolute;left:' + sideX + ';top:44%;width:40px;height:40px;margin-left:-20px;margin-top:-20px;border-radius:50%;background:radial-gradient(circle,rgba(255,230,150,.9),transparent 65%);animation:fx_clash .3s steps(4) both;';
+        clash.style.cssText = 'position:absolute;left:' + sideX + ';top:44%;width:40px;height:40px;border-radius:50%;background:radial-gradient(circle,rgba(255,230,150,.9),transparent 65%);animation:fx_clash .3s steps(4) both;';
         sparkLyr.appendChild(clash);
         setTimeout(() => clash.remove(), 400);
 
         // Crit ring
         if (hit.crit) {
           const cr = document.createElement('div');
-          cr.style.cssText = 'position:absolute;left:' + sideX + ';top:44%;width:50px;height:50px;margin-left:-25px;margin-top:-25px;border:3px solid #ffd24d;border-radius:2px;box-shadow:0 0 10px #ffd24d;animation:fx_clash .35s steps(5) both;';
+          cr.style.cssText = 'position:absolute;left:' + sideX + ';top:44%;width:50px;height:50px;border:3px solid #ffd24d;border-radius:2px;box-shadow:0 0 10px #ffd24d;animation:fx_clash .35s steps(5) both;';
           sparkLyr.appendChild(cr);
           setTimeout(() => cr.remove(), 500);
         }
@@ -487,7 +487,7 @@ const FX = (() => {
     const cx = r.left + r.width/2 - rr.left;
     const cy = r.top  + r.height/2 - rr.top;
     const flash = document.createElement('div');
-    flash.style.cssText = 'position:absolute;left:' + cx + 'px;top:' + cy + 'px;width:80px;height:80px;margin-left:-40px;margin-top:-40px;border-radius:50%;background:radial-gradient(circle,rgba(255,216,77,.9),transparent 65%);animation:fx_clash .5s steps(6) both;z-index:25;pointer-events:none;';
+    flash.style.cssText = 'position:absolute;left:' + cx + 'px;top:' + cy + 'px;width:80px;height:80px;border-radius:50%;background:radial-gradient(circle,rgba(255,216,77,.9),transparent 65%);animation:fx_clash .5s steps(6) both;z-index:25;pointer-events:none;';
     root.appendChild(flash);
     setTimeout(() => flash.remove(), 600);
   }
@@ -499,7 +499,7 @@ const FX = (() => {
     const { x, y } = anchorCenter(anchorEl);
     const lyr = layer(25, root);
     const ring = document.createElement('div');
-    ring.style.cssText = 'position:absolute;left:' + x + 'px;top:' + y + 'px;width:60px;height:60px;margin-left:-30px;margin-top:-30px;border:3px solid #ffd24d;border-radius:2px;animation:fx_ringPop .5s steps(6) both;';
+    ring.style.cssText = 'position:absolute;left:' + x + 'px;top:' + y + 'px;width:60px;height:60px;border:3px solid #ffd24d;border-radius:2px;animation:fx_ringPop .5s steps(6) both;';
     lyr.appendChild(ring);
     const lbl = document.createElement('div');
     lbl.style.cssText = 'position:absolute;left:' + x + 'px;top:' + y + 'px;font-family:Galmuri11,sans-serif;font-size:22px;color:#ffd76a;text-shadow:2px 2px 0 #000;animation:fx_lvBurst .7s steps(7) both;transform:translate(-50%,-50%);';
