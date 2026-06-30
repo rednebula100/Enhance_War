@@ -1,4 +1,13 @@
 ﻿const Game = (() => {
+  const SWORD_NAMES = [
+    '', // Lv.0 placeholder
+    '녹슨 단검','무딘 양철검','투박한 철검','낡은 장검','흔한 강철검',
+    '다듬어진 강철검','광택나는 강철검','견고한 기사검','정교한 세공검','빛나는 은검',
+    '서리 맺힌 검','푸른 기운의 검','마력이 흐르는 검','폭풍을 가르는 검','청염검',
+    '용의 송곳니','천둥의 파편','혈광검','파멸의 인도자','군주의 검',
+    '시간을 베는 자','별빛의 인도자','영혼 흡수자','종말의 선고자','운명을 가르는 검',
+    '신화의 파편','창세의 검','신들의 분노','우주를 가르는 칼날','태초의 한 줄기 빛',
+  ];
   let getSocket;
   let timerInterval = null;
   let _cooldownRAF = null;
@@ -105,7 +114,7 @@
     state.myCoins = coins ?? state.myCoins;
 
     const lb = document.getElementById('my-level-badge');   if (lb) lb.textContent = `Lv.${state.myLevel}`;
-    const sb = document.getElementById('my-sword-badge');   if (sb) sb.textContent = `Lv.${state.myLevel}`;
+    const sb = document.getElementById('my-sword-badge');   if (sb) sb.textContent = SWORD_NAMES[state.myLevel] || `Lv.${state.myLevel}`;
     const atkEl = document.getElementById('my-atk');        if (atkEl) atkEl.textContent = state.myLevel * 10;
     const durEl = document.getElementById('my-dur');        if (durEl) durEl.textContent = 50 + state.myLevel * 15;
     const coinsEl = document.getElementById('my-coins');    if (coinsEl) coinsEl.textContent = Math.floor(state.myCoins);
@@ -129,7 +138,7 @@
   }
 
   function _updateOppState({ level, atk }) {
-    const sb = document.getElementById('opp-sword-badge'); if (sb) sb.textContent = `Lv.${level}`;
+    const sb = document.getElementById('opp-sword-badge'); if (sb) sb.textContent = SWORD_NAMES[level] || `Lv.${level}`;
     const atkEl = document.getElementById('opp-atk');     if (atkEl) atkEl.textContent = atk;
     const durEl = document.getElementById('opp-dur');     if (durEl) durEl.textContent = `DUR ${50 + level * 15}`;
     const oppDurTxt = document.getElementById('opp-dur-text'); if (oppDurTxt) oppDurTxt.textContent = 50 + level * 15;

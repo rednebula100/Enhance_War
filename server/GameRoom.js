@@ -334,7 +334,7 @@ class GameRoom {
   handleDisconnect(playerIdx) {
     if (this.phase === 'ENDED') return;
     clearTimeout(this.timer);
-    clearInterval(this.botInterval);
+    clearTimeout(this.botInterval);
     this.swords[playerIdx].hp = 0;
     this._endMatch();
   }
@@ -434,9 +434,13 @@ class GameRoom {
 
     const botIdx = this.players.findIndex(p => p.isBot);
     if (botIdx !== -1) {
-      this.botInterval = setInterval(() => {
-        if (this.phase === 'ROUND') this._botTick(botIdx);
-      }, GAME_CONFIG.BOT_TICK_INTERVAL_MS);
+      const scheduleBot = () => {
+        const delay = 200 + Math.random() * 1300; // 0.2~1.5초 랜덤 (스펙 §6)
+        this.botInterval = setTimeout(() => {
+          if (this.phase === 'ROUND') { this._botTick(botIdx); scheduleBot(); }
+        }, delay);
+      };
+      scheduleBot();
     }
 
     this.timer = setTimeout(() => this._startCombat(), GAME_CONFIG.ROUND_DURATION_MS);
@@ -501,7 +505,7 @@ class GameRoom {
 
   _startCombat() {
     this.phase = 'COMBAT';
-    clearInterval(this.botInterval);
+    clearTimeout(this.botInterval);
 
     const m0 = this._passiveMods(0);
     const m1 = this._passiveMods(1);
@@ -643,7 +647,7 @@ class GameRoom {
     if (this.phase === 'ENDED') return;
     this.phase = 'ENDED';
     clearTimeout(this.timer);
-    clearInterval(this.botInterval);
+    clearTimeout(this.botInterval);
 
     const p0won = this.swords[1].hp <= 0;
 
