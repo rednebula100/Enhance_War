@@ -8,6 +8,8 @@
 
   function init(socketGetter) {
     getSocket = socketGetter;
+    document.getElementById('btn-shop-reroll')?.addEventListener('click', () => getSocket()?.emit('reroll_shop'));
+    document.getElementById('btn-shop-freeze')?.addEventListener('click', () => getSocket()?.emit('freeze_shop'));
   }
 
   function _syncCoins(c) {
@@ -52,7 +54,7 @@
     }
 
     const hcEl = document.getElementById('shop-hand-count');
-    if (hcEl) hcEl.textContent = (hand ? hand.length : 0) + ' / 8';
+    if (hcEl) hcEl.textContent = '손패 ' + (hand ? hand.length : 0) + ' / 8';
 
     const hoEl = document.getElementById('shop-hand-owner');
     if (hoEl) hoEl.textContent = (window.myDisplayName || '나') + ' 손패';
@@ -167,7 +169,7 @@
     _renderHand();
     _renderShelf(currentCards);
     const hcEl = document.getElementById('shop-hand-count');
-    if (hcEl) hcEl.textContent = (hand ? hand.length : 0) + ' / 8';
+    if (hcEl) hcEl.textContent = '손패 ' + (hand ? hand.length : 0) + ' / 8';
 
     if (typeof FX !== 'undefined') {
       FX.coinChange('minus', prevCoins - coins);
@@ -193,7 +195,7 @@
     _renderHand();
     _renderShelf(currentCards);
     const hcEl = document.getElementById('shop-hand-count');
-    if (hcEl) hcEl.textContent = (hand ? hand.length : 0) + ' / 8';
+    if (hcEl) hcEl.textContent = '손패 ' + (hand ? hand.length : 0) + ' / 8';
   }
 
   function onUpgradeResult({ success, shopLevel: newLv, coins, cards }) {
@@ -203,7 +205,7 @@
     _syncCoins(currentCoins);
     if (cards) _renderShelf(cards);
     const hcEl = document.getElementById('shop-hand-count');
-    if (hcEl) hcEl.textContent = (hand ? hand.length : 0) + ' / 8';
+    if (hcEl) hcEl.textContent = '손패 ' + (hand ? hand.length : 0) + ' / 8';
   }
 
   function onHandUpdate({ hand: newHand }) {

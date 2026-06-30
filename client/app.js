@@ -16,8 +16,13 @@ let socket = null;
 
 // ── 화면 전환 ─────────────────────────────────
 function showScreen(id) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('.screen').forEach(s => {
+    s.classList.remove('active');
+    s.style.display = 'none';
+  });
+  const el = document.getElementById(id);
+  el.classList.add('active');
+  el.style.display = 'flex';
 }
 
 // ── Socket.io 연결 및 전역 이벤트 ─────────────

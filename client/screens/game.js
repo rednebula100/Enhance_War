@@ -91,12 +91,14 @@
     }, 1000);
   }
 
+  let _dmgTimer = null;
   function _flashDamage(text) {
     const el = document.getElementById('damage-overlay');
     if (!el) return;
     el.textContent = text;
-    el.classList.add('show');
-    setTimeout(() => el.classList.remove('show'), 1200);
+    el.style.display = 'block';
+    clearTimeout(_dmgTimer);
+    _dmgTimer = setTimeout(() => { el.style.display = 'none'; }, 1200);
   }
 
   function _updateHp(myHp, oppHp) {
@@ -107,9 +109,9 @@
     if (el('my-hp-bar2'))  el('my-hp-bar2').style.width  = mPct;
     if (el('opp-hp-bar'))  el('opp-hp-bar').style.width  = oPct;
     if (el('opp-hp-bar2')) el('opp-hp-bar2').style.width = oPct;
-    if (el('my-hp-text'))  el('my-hp-text').textContent  = Math.max(0, Math.round(myHp));
+    if (el('my-hp-text'))  el('my-hp-text').textContent  = `${Math.max(0,Math.round(myHp))}/100`;
     if (el('my-hp-text2')) el('my-hp-text2').textContent = `${Math.max(0,Math.round(myHp))} / 100`;
-    if (el('opp-hp-text')) el('opp-hp-text').textContent = Math.max(0, Math.round(oppHp));
+    if (el('opp-hp-text')) el('opp-hp-text').textContent = `${Math.max(0,Math.round(oppHp))}/100`;
     if (typeof FX !== 'undefined') FX.hpWarning(myHp > 0 && myHp <= 30, myHp);
   }
 
@@ -129,32 +131,40 @@
     const sp = document.getElementById('sell-preview');
     if (sp) sp.textContent = state.myLevel > 0 ? `판매 시 +${sellVal}코인` : '';
 
-    const sellBtn = document.getElementById('btn-sell');
-    if (sellBtn) sellBtn.innerHTML = `판매<span style="font-family:'Galmuri7',monospace;font-size:8px;color:#16344f;margin-top:2px;">+${sellVal} 코인</span>`;
+    const sellCoinLbl = document.getElementById('sell-coin-label');
+    if (sellCoinLbl) sellCoinLbl.textContent = `+${sellVal} 코인`;
   }
 
   function _updateOppState({ level, atk }) {
     const sb = document.getElementById('opp-sword-badge'); if (sb) sb.textContent = `Lv.${level}`;
     const atkEl = document.getElementById('opp-atk');     if (atkEl) atkEl.textContent = atk;
     const durEl = document.getElementById('opp-dur');     if (durEl) durEl.textContent = `DUR ${50 + level * 15}`;
+    const oppDurTxt = document.getElementById('opp-dur-text'); if (oppDurTxt) oppDurTxt.textContent = 50 + level * 15;
   }
 
-  // FX15: rAF 기반 쿨다운 (버튼 내부 bottom-up fill)
+  // FX15: rAF 기반 쿨다운 (버튼 내부 bottom-up fill — design-reference verbatim)
   function _startCooldown(ms) {
     const btn = document.getElementById('btn-enhance');
+    const fill = document.getElementById('enhance-cooldown-fill');
+    const scan = document.getElementById('enhance-cooldown-scan');
     if (!btn) return;
     cancelAnimationFrame(_cooldownRAF);
     btn.disabled = true;
-    if (typeof FX !== 'undefined') FX.setCooldownOverlay(0);
+    if (fill) { fill.style.height = '0%'; }
+    if (scan) { scan.style.display = 'block'; scan.style.bottom = '0%'; }
 
     const t0 = performance.now();
     const step = () => {
       const p = Math.min(100, ((performance.now() - t0) / ms) * 100);
-      if (typeof FX !== 'undefined') FX.setCooldownOverlay(p);
+      const disp = Math.round(p / 4) * 4;
+      if (fill) fill.style.height = disp + '%';
+      if (scan) scan.style.bottom = 'calc(' + disp + '% - 1px)';
       if (p < 100) {
         _cooldownRAF = requestAnimationFrame(step);
       } else {
         btn.disabled = false;
+        if (fill) fill.style.height = '0%';
+        if (scan) scan.style.display = 'none';
       }
     };
     _cooldownRAF = requestAnimationFrame(step);
@@ -200,7 +210,8 @@
     cancelAnimationFrame(_cooldownRAF);
     const btn = document.getElementById('btn-enhance');
     if (btn) btn.disabled = false;
-    if (typeof FX !== 'undefined') FX.setCooldownOverlay(0);
+    const fill3 = document.getElementById('enhance-cooldown-fill'); if (fill3) fill3.style.height = '0%';
+    const scan3 = document.getElementById('enhance-cooldown-scan'); if (scan3) scan3.style.display = 'none';
     document.getElementById('btn-sell').disabled = false;
     _startTimer(timeLeft, 'timer-bar', 'timer-text');
     _updateMyState({ level: myState.level, combo: myState.combo, coins: myState.coins });

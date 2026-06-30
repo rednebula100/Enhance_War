@@ -25,11 +25,11 @@
   }
 
   function showQueueOverlay() {
-    document.getElementById('queue-overlay').classList.add('active');
+    document.getElementById('queue-overlay').style.display = 'flex';
   }
 
   function hideQueueOverlay() {
-    document.getElementById('queue-overlay').classList.remove('active');
+    document.getElementById('queue-overlay').style.display = 'none';
   }
 
   function onAuthOk({ displayName, money }) {

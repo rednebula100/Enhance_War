@@ -1,646 +1,42 @@
-﻿@import url('https://cdn.jsdelivr.net/npm/galmuri/dist/galmuri.css');
-
-/* ── 변수 ───────────────────────────────────── */
-:root {
-  --bg:           #16141b;
-  --panel:        #23222b;
-  --panel2:       #26242e;
-  --border:       #07070a;
-  --border2:      #34333f;
-  --accent:       #f5a93a;
-  --accent-dk:    #7a2e1f;
-  --gold:         #ffd76a;
-  --text:         #e0d0b0;
-  --text-dim:     #8a8a98;
-  --hp-red:       #c23730;
-  --hp-green:     #27ae60;
-  --danger:       #e74c3c;
-  --r1:#9aa0ac; --r2:#4fbf66; --r3:#3f8be0;
-  --r4:#a865e8; --r5:#f5972a; --r6:#e8463f;
-}
-
-/* ── 기본 ───────────────────────────────────── */
-* { box-sizing: border-box; margin: 0; padding: 0; image-rendering: pixelated; -webkit-font-smoothing: none; }
-body {
-  font-family: 'Galmuri9', 'Courier New', monospace;
-  background: var(--bg);
-  color: var(--text);
-  height: 100vh;
+﻿/* ── BASE ── */
+* { -webkit-font-smoothing: none; box-sizing: border-box; }
+html, body { margin: 0; padding: 0; overflow: hidden; background: #0e0c12; }
+#game-root {
+  position: absolute;
+  width: 1280px; height: 720px;
   overflow: hidden;
-  display: flex;
-  align-items: stretch;
-  position: relative;
+  background: #2b2b33;
+  font-family: Galmuri11, sans-serif;
+  user-select: none;
+  image-rendering: pixelated;
+  transform-origin: top left;
 }
-
-/* ── 대장간 배경 ─────────────────────────────── */
-body::before {
-  content: '';
-  position: fixed; inset: 0; z-index: 0; pointer-events: none;
-  background-color: #16141b;
-  background-image:
-    repeating-linear-gradient(0deg, transparent 0 33px, #0e0c12 33px 36px),
-    repeating-linear-gradient(90deg, #1e1c24 0 67px, #0e0c12 67px 70px);
-}
-body::after {
-  content: '';
-  position: fixed; inset: 0; z-index: 0; pointer-events: none;
-  background:
-    radial-gradient(ellipse 62% 46% at 50% 100%, rgba(214,86,46,.45), rgba(122,46,31,.18) 45%, transparent 70%),
-    radial-gradient(circle at 7% 88%,  rgba(196,74,42,.22), transparent 36%),
-    radial-gradient(circle at 93% 88%, rgba(196,74,42,.22), transparent 36%);
-  animation: forgeFlicker 3.4s ease-in-out infinite;
-}
-@keyframes forgeFlicker { 0%,100%{ opacity:.82 } 45%{ opacity:1 } 70%{ opacity:.9 } }
-
-/* ember 파티클 */
-.ember {
-  position: fixed; z-index: 1; pointer-events: none;
-  border-radius: 50%;
-  box-shadow: 0 0 6px #ff7a2a;
-  animation: emberRise var(--dur,4s) var(--delay,0s) ease-in infinite;
-}
-@keyframes emberRise {
-  0%  { transform: translateY(0) translateX(0); opacity: 0; }
-  12% { opacity: .9; }
-  100%{ transform: translateY(-160px) translateX(14px); opacity: 0; }
-}
-
-/* 비네트 */
-.vignette {
-  position: fixed; inset: 0; z-index: 1; pointer-events: none;
-  background: radial-gradient(ellipse 76% 78% at 50% 44%, transparent 54%, rgba(0,0,0,.55));
-}
-
-/* ── 화면 전환 ──────────────────────────────── */
-.screen { display: none; width: 100%; flex-direction: column; position: relative; z-index: 2; }
+.screen { position: absolute; inset: 0; z-index: 5; display: none; }
 .screen.active { display: flex; }
 
-/* ── 픽셀아트 패널 믹스인 ───────────────────── */
-.panel-raised {
-  background: var(--panel);
-  border: 2px solid var(--border);
-  box-shadow: inset 0 0 0 2px var(--border2),
-              inset 4px 4px 0 rgba(255,255,255,.04),
-              inset -4px -5px 0 rgba(0,0,0,.45),
-              0 5px 0 rgba(0,0,0,.45);
-}
-
-/* ── 공통 버튼 ──────────────────────────────── */
-.btn-primary {
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  padding: 10px 20px;
-  background: linear-gradient(#f5a93a, #d97a1f);
-  color: #3a1d06;
-  border: 3px solid #000;
-  box-shadow: inset 2px 2px 0 rgba(255,255,255,.4),
-              inset -3px -4px 0 rgba(120,50,10,.5),
-              0 5px 0 #6e3a12, 0 7px 0 #000;
-  font-family: 'Galmuri11', sans-serif;
-  font-size: 22px; letter-spacing: 2px;
-  cursor: pointer;
-  position: relative; overflow: hidden;
-  transition: filter 0.1s;
-}
-.btn-primary::before {
-  content: '';
-  position: absolute; left: 0; top: 0; bottom: 0; width: 55%;
-  background: linear-gradient(rgba(255,224,150,.4), rgba(255,180,80,.25));
-  border-right: 2px solid rgba(255,255,255,.5);
-}
-.btn-primary:hover { filter: brightness(1.1); }
-.btn-primary:disabled { filter: brightness(0.55); cursor: not-allowed; }
-
-.btn-secondary {
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  padding: 8px 16px;
-  background: linear-gradient(#4a8fd0, #2f6aa8);
-  color: #0e2438;
-  border: 3px solid #000;
-  box-shadow: inset 2px 2px 0 rgba(255,255,255,.35),
-              inset -3px -4px 0 rgba(20,50,80,.5),
-              0 4px 0 #1c456e, 0 6px 0 #000;
-  font-family: 'Galmuri11', sans-serif;
-  font-size: 16px; letter-spacing: 2px;
-  cursor: pointer;
-}
-.btn-secondary:hover { filter: brightness(1.1); }
-
-.btn-accent {
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  padding: 8px 16px;
-  background: linear-gradient(#4a8fd0, #2f6aa8);
-  color: #0e2438;
-  border: 3px solid #000;
-  box-shadow: inset 2px 2px 0 rgba(255,255,255,.35),
-              inset -3px -4px 0 rgba(20,50,80,.5),
-              0 4px 0 #1c456e, 0 6px 0 #000;
-  font-family: 'Galmuri11', sans-serif;
-  font-size: 16px; letter-spacing: 2px;
-  cursor: pointer;
-}
-
-/* ── 로그인 / 메뉴 ───────────────────────────── */
-#screen-login, #screen-menu { align-items: center; justify-content: center; }
-.center-panel {
-  margin: auto;
-  display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 28px 32px;
-  background: var(--panel);
-  border: 2px solid var(--border);
-  box-shadow: inset 0 0 0 2px var(--border2), 0 6px 0 rgba(0,0,0,.5);
-  min-width: 300px;
-}
-.title { font-family: 'Galmuri11', sans-serif; font-size: 28px; color: var(--gold); letter-spacing: 4px; }
-.subtitle { font-size: 11px; color: var(--text-dim); }
-.gold-text { color: var(--gold); }
-.player-info { display: flex; gap: 16px; font-size: 12px; }
-
-/* ── 매칭 대기 오버레이 ──────────────────────── */
-#screen-menu { position: relative; }
-.queue-overlay {
-  display: none; position: absolute; inset: 0;
-  background: rgba(22,20,27,.93);
-  flex-direction: column; align-items: center; justify-content: center; gap: 18px; z-index: 10;
-}
-.queue-overlay.active { display: flex; }
-.spinner {
-  width: 44px; height: 44px;
-  border: 4px solid var(--border2); border-top-color: var(--accent);
-  border-radius: 50%; animation: spin 0.8s linear infinite;
-}
-@keyframes spin { to { transform: rotate(360deg); } }
-.queue-text { font-size: 12px; color: var(--text-dim); }
-
-/* ── 대결 화면 ──────────────────────────────── */
-#screen-game { height: 100vh; }
-
-.game-topbar {
-  display: flex; align-items: center; gap: 8px; padding: 6px 10px;
-  background: var(--panel);
-  border-bottom: 2px solid var(--border);
-  box-shadow: 0 3px 0 rgba(0,0,0,.4);
-  height: 44px; flex-shrink: 0; z-index: 10; position: relative;
-}
-.hp-wrap { display: flex; align-items: center; gap: 6px; flex: 1; }
-.opp-hp-wrap { flex-direction: row-reverse; }
-.hp-bar-bg {
-  flex: 1; height: 13px;
-  background: #1a1216;
-  border: 2px solid #000; position: relative;
-}
-.hp-bar {
-  position: absolute; inset: 0;
-  background: linear-gradient(#f0635a, #c23730);
-  box-shadow: inset 0 2px 0 rgba(255,255,255,.3), inset 0 -3px 0 rgba(0,0,0,.3);
-  transition: width 0.4s;
-}
-.hp-text { font-family: 'Galmuri7', monospace; font-size: 9px; min-width: 36px; color: #d7b0ad; }
-.round-info { display: flex; flex-direction: column; align-items: center; gap: 3px; min-width: 90px; }
-#round-label { font-size: 11px; color: var(--gold); font-family: 'Galmuri11', sans-serif; }
-.timer-bar-bg { width: 100%; height: 8px; background: #0f201e; border: 2px solid #000; position: relative; }
-.timer-bar {
-  position: absolute; inset: 0;
-  background: linear-gradient(#39e6cf, #15a892);
-  box-shadow: inset 0 2px 0 rgba(255,255,255,.3);
-  transition: width 1s linear;
-}
-#timer-text { font-family: 'Galmuri7', monospace; font-size: 9px; color: #5fd6c4; }
-
-/* ── 게임 아레나 ─────────────────────────────── */
-.game-arena {
-  display: flex; flex-direction: column; flex: 1; overflow: hidden;
-}
-
-/* ── 상대 패널 (상단 compact) ──────────────────── */
-.opp-side {
-  order: 1; flex: 0 0 auto;
-  display: flex; align-items: center; gap: 12px;
-  padding: 8px 14px;
-  background: var(--panel);
-  border-bottom: 2px solid var(--border);
-  box-shadow: inset 0 0 0 1px var(--border2), 0 4px 0 rgba(0,0,0,.4);
-}
-.opp-avatar {
-  width: 44px; height: 44px; flex: none;
-  background: #191820;
-  border: 2px solid #000;
-  box-shadow: inset 2px 2px 0 rgba(255,255,255,.06), inset -2px -2px 0 rgba(0,0,0,.45);
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-}
-.opp-info { display: flex; flex-direction: column; gap: 3px; }
-.opp-name-text { font-family: 'Galmuri11', sans-serif; font-size: 13px; color: #e6e1ea; }
-.opp-rank { font-family: 'Galmuri7', monospace; font-size: 8px; color: var(--text-dim); }
-.opp-hp-section { display: flex; align-items: center; gap: 6px; flex: 1; max-width: 200px; }
-.opp-sword-thumb {
-  width: 52px; height: 68px; flex: none;
-  background-color: #1d1a1f;
-  background-image: repeating-linear-gradient(45deg, rgba(255,255,255,.03) 0 4px, transparent 4px 8px);
-  border: 2px solid #45454f;
-  box-shadow: inset 0 0 8px rgba(0,0,0,.5);
-  display: flex; align-items: center; justify-content: center;
-}
-.opp-stats { display: flex; flex-direction: column; gap: 3px; }
-.opp-atk-val { font-family: 'Galmuri11', sans-serif; font-size: 17px; color: #ffb24d; }
-.opp-card-count {
-  display: flex; flex-direction: column; align-items: center;
-  margin-left: auto; flex: none;
-}
-
-/* ── VS 구분 ─────────────────────────────────── */
-.vs-divider {
-  order: 2; flex: 0 0 auto;
-  display: flex; align-items: center; justify-content: center; gap: 18px;
-  height: 48px;
-  background: var(--panel2);
-  border-top: 1px solid rgba(255,255,255,.05);
-  border-bottom: 1px solid rgba(255,255,255,.05);
-}
-.vs-badge {
-  width: 38px; height: 38px;
-  background: radial-gradient(circle at 35% 30%, #ffd86a, #b8761f);
-  border: 3px solid #000; border-radius: 50%;
-  box-shadow: 0 0 12px rgba(245,170,60,.5),
-              inset -2px -2px 0 rgba(120,60,10,.5),
-              inset 2px 2px 0 rgba(255,255,255,.4);
-  display: flex; align-items: center; justify-content: center;
-  font-family: 'Galmuri11', sans-serif; font-size: 11px; color: #3a1d06;
-}
-
-/* ── 내 영역 (하단 main) ──────────────────────── */
-.my-side {
-  order: 3; flex: 1;
-  display: flex; align-items: center; justify-content: center;
-  gap: 14px; padding: 10px 14px;
-  background: var(--panel2);
-  border-top: 2px solid var(--border);
-  box-shadow: inset 0 0 0 2px #3a3946, inset 4px 4px 0 rgba(255,255,255,.04);
-}
-
-/* ── 내 프로필 (좌) ──────────────────────────── */
-.my-profile { display: flex; flex-direction: column; gap: 8px; min-width: 150px; }
-.my-avatar-row { display: flex; align-items: center; gap: 8px; }
-.my-avatar {
-  width: 48px; height: 48px; flex: none;
-  background: #191820; border: 2px solid #000;
-  box-shadow: inset 2px 2px 0 rgba(255,255,255,.07),
-              inset -2px -2px 0 rgba(0,0,0,.45),
-              0 0 10px rgba(245,150,42,.2);
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-}
-.my-name-text { font-family: 'Galmuri11', sans-serif; font-size: 13px; color: #fff3e2; }
-.my-rank { font-family: 'Galmuri7', monospace; font-size: 8px; color: var(--accent); }
-.my-hp-row { display: flex; align-items: center; gap: 6px; }
-.my-hp-label { font-family: 'Galmuri7', monospace; font-size: 9px; color: #e07a72; }
-
-/* ── 검 영역 (중앙) ──────────────────────────── */
-.sword-area { display: flex; flex-direction: column; align-items: center; gap: 6px; flex: none; }
-.sword-art {
-  width: 110px; height: 140px;
-  background-color: #1d1a1f;
-  background-image: repeating-linear-gradient(45deg, rgba(245,151,42,.05) 0 5px, transparent 5px 10px);
-  border: 3px solid #5a4636;
-  box-shadow: inset 0 0 12px rgba(0,0,0,.55), inset 0 0 0 1px #000,
-              0 0 16px rgba(214,86,46,.25);
-  animation: swordPulse 2.6s ease-in-out infinite;
-  display: flex; align-items: center; justify-content: center;
-  position: relative; image-rendering: pixelated;
-}
-.sword-art img { width: 100%; height: 100%; object-fit: contain; image-rendering: pixelated; }
-@keyframes swordPulse {
-  0%,100% { box-shadow: inset 0 0 20px rgba(214,86,46,.3), inset 0 0 0 1px #000, 0 0 16px rgba(214,86,46,.25); }
-  50% { box-shadow: inset 0 0 26px rgba(245,140,60,.45), inset 0 0 0 1px #000, 0 0 24px rgba(245,140,60,.38); }
-}
-/* 검 코너 브라켓 */
-.sword-art::before, .sword-art::after { content: ''; position: absolute; width: 10px; height: 10px; }
-.sword-art::before { top: -1px; left: -1px; border-top: 3px solid var(--accent); border-left: 3px solid var(--accent); }
-.sword-art::after  { bottom: -1px; right: -1px; border-bottom: 3px solid var(--accent); border-right: 3px solid var(--accent); }
-.sword-corner-tr, .sword-corner-bl {
-  position: absolute; width: 10px; height: 10px; pointer-events: none;
-}
-.sword-corner-tr { top: -1px; right: -1px; border-top: 3px solid var(--accent); border-right: 3px solid var(--accent); }
-.sword-corner-bl { bottom: -1px; left: -1px; border-bottom: 3px solid var(--accent); border-left: 3px solid var(--accent); }
-
-.sword-level-badge {
-  position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%);
-  font-family: 'Galmuri7', monospace; font-size: 8px; color: var(--gold);
-  background: rgba(0,0,0,.7); padding: 2px 5px; white-space: nowrap;
-}
-.opp-sword-art {
-  width: 52px; height: 68px;
-  border: 2px solid #45454f;
-  box-shadow: inset 0 0 8px rgba(0,0,0,.5);
-  background: #1d1a1f;
-  display: flex; align-items: center; justify-content: center;
-  animation: none;
-}
-.opp-sword-art::before, .opp-sword-art::after { display: none; }
-
-/* DUR 바 */
-.dur-bar-wrap { width: 110px; }
-.dur-bar-bg {
-  width: 100%; height: 9px;
-  background: #15171c; border: 2px solid #000; position: relative;
-}
-.dur-bar {
-  position: absolute; inset: 0; width: 100%;
-  background: linear-gradient(#e2e8f0, #9aa3b3);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.45);
-  transition: width 0.12s linear;
-}
-
-/* ── 내 스탯 (검 오른쪽) ─────────────────────── */
-.my-stats { display: flex; flex-direction: column; gap: 6px; }
-.level-rarity-row { display: flex; align-items: center; gap: 5px; }
-.level-badge {
-  font-family: 'Galmuri7', monospace; font-size: 11px; color: #ffe0a0;
-  background: #3a2c14; border: 1px solid #000; padding: 2px 6px;
-}
-.rarity-badge {
-  font-family: 'Galmuri7', monospace; font-size: 9px;
-  background: #3a1c52; border: 1px solid #000; padding: 2px 6px; color: #e3c4ff;
-}
-.atk-row { display: flex; align-items: baseline; gap: 5px; }
-.atk-label { font-family: 'Galmuri7', monospace; font-size: 9px; color: var(--text-dim); }
-.atk-val { font-family: 'Galmuri11', sans-serif; font-size: 24px; color: #ffb24d; text-shadow: 1px 2px 0 #000; }
-.coins-row { display: flex; align-items: center; gap: 6px; }
-.coin-gem {
-  width: 14px; height: 14px; border-radius: 50%;
-  background: radial-gradient(circle at 35% 30%, #ffe79a, #c89018);
-  border: 1px solid #6e4a10;
-  box-shadow: inset -1px -1px 0 rgba(120,70,10,.6);
-}
-.coins-val { font-family: 'Galmuri11', sans-serif; font-size: 13px; color: var(--gold); }
-.combo-text { font-family: 'Galmuri7', monospace; font-size: 9px; color: #5fd6c4; }
-.sell-preview { font-family: 'Galmuri7', monospace; font-size: 9px; color: #6f9fd6; min-height: 14px; }
-
-/* ── 강화/판매 버튼 ──────────────────────────── */
-.action-btns { display: flex; flex-direction: column; gap: 6px; flex: none; }
-#btn-enhance {
-  width: 130px; height: 72px;
-  font-size: 22px;
-}
-#btn-sell {
-  width: 130px; height: 42px;
-  font-size: 16px;
-}
-.enhance-wrap { position: relative; }
-.enhance-cooldown {
-  position: absolute; bottom: 0; left: 0;
-  height: 3px; width: 0%;
-  background: rgba(255,255,255,.55);
-  pointer-events: none;
-}
-
-/* ── 손패 바 ─────────────────────────────────── */
-.hand-bar {
-  order: 4; flex: 0 0 auto;
-  display: flex; align-items: center; gap: 6px; padding: 7px 10px;
-  background: linear-gradient(#2c2832, #211d27);
-  border-top: 2px solid var(--border);
-  box-shadow: inset 0 2px 0 rgba(255,255,255,.05), inset 0 0 0 1px #34303c;
-  min-height: 88px; overflow-x: auto;
-}
-
-/* ── 카드 (EnhanceCard 디자인 구현) ─────────── */
-.hand-slot {
-  width: 62px; min-width: 62px; height: 82px;
-  box-sizing: border-box; padding: 2px;
-  background: var(--r1);
-  box-shadow: 3px 3px 0 rgba(0,0,0,.55);
-  display: flex; flex-direction: column;
-  flex-shrink: 0; position: relative; cursor: default;
-}
-.hand-slot-inner {
-  width: 100%; height: 100%;
-  background: #15151b;
-  border: 2px solid #000;
-  display: flex; flex-direction: column;
-  padding: 2px 3px 3px;
-  position: relative;
-}
-.card-cost-badge {
-  position: absolute; top: -2px; left: -2px;
-  width: 16px; height: 16px;
-  background: var(--r1);
-  border: 1px solid #000;
-  box-shadow: inset -1px -1px 0 rgba(0,0,0,.4), inset 1px 1px 0 rgba(255,255,255,.3);
-  display: flex; align-items: center; justify-content: center;
-  font-family: 'Galmuri11', sans-serif; font-size: 9px; color: #1a1206;
-}
-.card-art-area {
-  height: 30px; margin-top: 14px;
-  background-color: #1c1c24;
-  background-image: repeating-linear-gradient(45deg, rgba(255,255,255,.04) 0 3px, transparent 3px 6px);
-  border: 1px solid #000;
-  box-shadow: inset 0 0 8px rgba(0,0,0,.5);
-  display: flex; align-items: center; justify-content: center;
-  font-family: 'Galmuri7', monospace; font-size: 7px; color: #555564;
-  flex-shrink: 0;
-}
-.card-name {
-  font-family: 'Galmuri11', sans-serif; font-size: 8px; color: #c8ccd4;
-  text-align: center; line-height: 1.1; margin-top: 3px; text-shadow: 1px 1px 0 #000;
-}
-.card-divider { height: 1px; background: rgba(255,255,255,.09); margin: 2px 1px; flex-shrink: 0; }
-.card-effect {
-  font-family: 'Galmuri9', sans-serif; font-size: 7px; color: #b6b9c4;
-  text-align: center; line-height: 1.3; padding: 0 1px;
-  flex: 1; overflow: hidden;
-}
-.hand-slot.active-card { cursor: pointer; }
-.hand-slot.active-card:hover { filter: brightness(1.25); }
-.hand-slot.active-card .hand-slot-inner::after {
-  content: '▶';
-  position: absolute; bottom: 2px; right: 2px;
-  font-size: 6px; color: var(--accent);
-}
-
-/* 성급 색상 */
-.rarity-1 { background: var(--r1); }
-.rarity-2 { background: var(--r2); }
-.rarity-3 { background: var(--r3); }
-.rarity-4 { background: var(--r4); }
-.rarity-5 { background: var(--r5); }
-.rarity-6 { background: var(--r6); }
-.rarity-7 {
-  background: linear-gradient(90deg,#ff5e5e,#ffbe4d,#7dff8a,#4dd2ff,#a97bff,#ff5ec8,#ff5e5e);
-  background-size: 200% 100%;
-  animation: rainbowSlide 3.2s linear infinite, ec_glow 1.9s ease-in-out infinite;
-}
-@keyframes rainbowSlide { 0%{ background-position:0% 50% } 100%{ background-position:200% 50% } }
+/* ── KEYFRAMES FROM DESIGN-REFERENCE (verbatim) ── */
+@keyframes ec_shimmer { 0%{ background-position:0% 50% } 100%{ background-position:200% 50% } }
 @keyframes ec_glow { 0%,100%{ filter:brightness(1) } 50%{ filter:brightness(1.22) } }
-
-/* ── 상점 화면 ──────────────────────────────── */
-#screen-shop { justify-content: flex-start; align-items: stretch; overflow-y: auto; }
-.shop-container {
-  display: flex; flex-direction: column; gap: 8px; padding: 10px;
-  width: 100%; flex: 1;
-}
-.shop-header {
-  display: flex; align-items: center; gap: 8px;
-  padding: 7px 12px;
-  background: var(--panel);
-  border: 2px solid var(--border);
-  box-shadow: inset 0 0 0 1px var(--border2), 0 3px 0 rgba(0,0,0,.4);
-  font-size: 11px; flex-shrink: 0;
-}
-.shop-player-name { font-family: 'Galmuri11', sans-serif; font-size: 12px; color: #e6e1ea; }
-.shop-header .timer-bar-bg { flex: 1; height: 8px; background: #0f201e; border: 2px solid #000; position: relative; }
-.shop-title-row {
-  display: flex; align-items: center; justify-content: center; gap: 10px;
-}
-.shop-title {
-  font-family: 'Galmuri11', sans-serif; font-size: 20px; color: var(--gold);
-  text-shadow: 0 0 12px rgba(245,170,60,.5), 1px 2px 0 #000; letter-spacing: 2px;
-}
-.shop-controls {
-  display: flex; align-items: center; justify-content: space-between; gap: 10px;
-}
-.shop-level-info { display: flex; flex-direction: column; gap: 2px; }
-.shop-level-label { font-family: 'Galmuri7', monospace; font-size: 8px; color: var(--text-dim); }
-.shop-level-val { font-family: 'Galmuri11', sans-serif; font-size: 14px; color: var(--gold); }
-.btn-shop-upg {
-  padding: 7px 12px;
-  background: linear-gradient(#5fb85f, #3d8c3d);
-  color: #0e2a0e; border: 3px solid #000;
-  box-shadow: inset 2px 2px 0 rgba(255,255,255,.3), 0 4px 0 #245224, 0 6px 0 #000;
-  font-family: 'Galmuri11', sans-serif; font-size: 12px; cursor: pointer;
-}
-.btn-shop-reroll, .btn-shop-freeze {
-  padding: 7px 12px; border: 3px solid #000;
-  box-shadow: inset 2px 2px 0 rgba(255,255,255,.3), 0 3px 0 rgba(0,0,0,.5);
-  font-family: 'Galmuri11', sans-serif; font-size: 11px; cursor: pointer;
-}
-.btn-shop-reroll { background: linear-gradient(#4a8fd0,#2f6aa8); color: #0e2438; }
-.btn-shop-freeze { background: linear-gradient(#46c7c2,#239b96); color: #0a2e2c; }
-.shop-shelf {
-  display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; padding: 8px 0;
-}
-.shop-card {
-  width: 120px; padding: 3px;
-  background: var(--r1);
-  box-shadow: 3px 3px 0 rgba(0,0,0,.55);
-  display: flex; flex-direction: column; cursor: pointer;
-  position: relative;
-}
-.shop-card-inner {
-  width: 100%; flex: 1;
-  background: #15151b; border: 2px solid #000;
-  display: flex; flex-direction: column; padding: 4px 5px 5px;
-  position: relative;
-}
-.shop-card .card-cost-badge { width: 20px; height: 20px; font-size: 10px; }
-.shop-card .card-art-area { height: 56px; margin-top: 18px; font-size: 8px; }
-.shop-card .card-name { font-size: 10px; margin-top: 4px; }
-.shop-card .card-effect { font-size: 8px; }
-.shop-card:hover { filter: brightness(1.15); }
-.shop-hand-label {
-  font-family: 'Galmuri7', monospace; font-size: 9px; color: var(--gold); letter-spacing: 1px;
-  padding: 0 4px;
-}
-#shop-hand-bar { border-top: 0; }
-
-/* ── 결과 화면 ──────────────────────────────── */
-#screen-result { align-items: center; justify-content: center; }
-.result-badge {
-  font-family: 'Galmuri11', sans-serif;
-  font-size: 36px; padding: 8px 24px;
-  border: 3px solid var(--gold); color: var(--gold); letter-spacing: 6px;
-  box-shadow: 0 0 20px rgba(255,215,106,.4);
-}
-.result-badge.lose { border-color: var(--text-dim); color: var(--text-dim); box-shadow: none; }
-.result-stats { font-size: 12px; display: flex; flex-direction: column; gap: 6px; text-align: center; }
-
-/* ── 시각 효과 ──────────────────────────────── */
-@keyframes shake-sm {
-  0%,100%{ transform:translate(0,0) } 25%{ transform:translate(-3px,-2px) }
-  50%{ transform:translate(3px,2px) } 75%{ transform:translate(-2px,1px) }
-}
-@keyframes shake-lg {
-  0%,100%{ transform:translate(0,0) } 20%{ transform:translate(-7px,-4px) }
-  40%{ transform:translate(7px,4px) } 60%{ transform:translate(-5px,2px) }
-  80%{ transform:translate(4px,-2px) }
-}
-.shake-sm { animation: shake-sm 0.3s ease-out; }
-.shake-lg { animation: shake-lg 0.45s ease-out; }
-
-.particle {
-  position: fixed; width: 6px; height: 6px; border-radius: 50%;
-  pointer-events: none; z-index: 500;
-  animation: particle-fly 0.65s ease-out forwards;
-}
-@keyframes particle-fly {
-  0%  { transform:translate(0,0) scale(1); opacity:1; }
-  100%{ transform:translate(var(--dx),var(--dy)) scale(0); opacity:0; }
-}
-.flash-red {
-  position: fixed; inset: 0; background: rgba(180,0,0,.38);
-  pointer-events: none; z-index: 400;
-  animation: flash-red-anim 0.45s ease-out forwards;
-}
-@keyframes flash-red-anim { 0%{ opacity:1 } 100%{ opacity:0 } }
-.sword-break { animation: sword-break-anim 0.55s ease-out forwards; }
-@keyframes sword-break-anim {
-  0%  { transform:translate(0,0) rotate(0deg); opacity:1; }
-  15% { transform:translate(-6px,0) rotate(-6deg); }
-  30% { transform:translate(6px,2px) rotate(6deg); }
-  50% { transform:translate(-4px,0) rotate(-4deg); opacity:.35; }
-  70% { transform:translate(0,6px); opacity:0; }
-  85% { opacity:0; }
-  100%{ transform:translate(0,0) rotate(0deg); opacity:1; }
-}
-.sword-break-gray { filter:grayscale(1) brightness(.6); animation:sword-break-anim 0.7s ease forwards; }
-.float-text {
-  position: fixed; font-family:'Galmuri9',monospace; font-size:15px; color:var(--gold);
-  pointer-events:none; z-index:500; transform:translate(-50%,-50%);
-  text-shadow:0 0 8px rgba(240,192,64,.9); white-space:nowrap;
-  animation:float-up 1.1s ease-out forwards;
-}
-@keyframes float-up {
-  0%  { transform:translate(-50%,-50%) scale(1.2); opacity:1; }
-  30% { transform:translate(-50%,-90%) scale(1);   opacity:1; }
-  100%{ transform:translate(-50%,-200%) scale(.8); opacity:0; }
-}
-.damage-overlay {
-  position:fixed; top:50%; left:50%; transform:translate(-50%,-50%);
-  font-family:'Galmuri11',sans-serif; font-size:28px; color:var(--danger);
-  pointer-events:none; opacity:0; transition:opacity .3s;
-  text-shadow:0 0 8px rgba(231,76,60,.8);
-}
-.damage-overlay.show { opacity:1; }
-
-@keyframes sword-bump-right { 0%{ transform:translateX(0) } 40%{ transform:translateX(18px) } 100%{ transform:translateX(0) } }
-@keyframes sword-bump-left  { 0%{ transform:translateX(0) } 40%{ transform:translateX(-18px) } 100%{ transform:translateX(0) } }
-.sword-bump-right { animation:sword-bump-right 0.14s ease-out; }
-.sword-bump-left  { animation:sword-bump-left  0.14s ease-out; }
-
-@keyframes hammer-strike {
-  0%  { transform:translateY(-6px) rotate(-20deg); }
-  35% { transform:translateY(14px) rotate(18deg); }
-  60% { transform:translateY(2px) rotate(5deg); }
-  100%{ transform:translateY(-6px) rotate(-20deg); }
-}
-.hammer { font-size:22px; transform:translateY(-6px) rotate(-20deg); display:block; transform-origin:bottom center; user-select:none; line-height:1; }
-.hammer.hammer-strike { animation:hammer-strike 0.24s ease-in-out; }
-.anvil-box { font-size:24px; user-select:none; line-height:1; }
-.anvil-wrap { display:flex; flex-direction:column; align-items:center; gap:2px; }
-/* ═══════════════════════════════════════════════════════════════
-   FX 키프레임 — design-reference FX 파일에서 추출
-═══════════════════════════════════════════════════════════════ */
-/* FX01 강화성공 */
+@keyframes ec_mergePulse { 0%{ transform:scale(1); filter:brightness(1) } 28%{ transform:scale(1.09); filter:brightness(2.4) } 55%{ transform:scale(.97); filter:brightness(1.3) } 78%{ transform:scale(1.02) } 100%{ transform:scale(1); filter:brightness(1) } }
+@keyframes forgeFlicker { 0%,100%{ opacity:.82 } 45%{ opacity:1 } 70%{ opacity:.9 } }
+@keyframes emberRise { 0%{ transform:translateY(0) translateX(0); opacity:0 } 12%{ opacity:.95 } 100%{ transform:translateY(-150px) translateX(14px); opacity:0 } }
+@keyframes swordPulse { 0%,100%{ box-shadow:inset 0 0 20px rgba(214,86,46,.35),inset 0 0 0 1px #000,0 0 16px rgba(214,86,46,.28) } 50%{ box-shadow:inset 0 0 26px rgba(245,140,60,.5),inset 0 0 0 1px #000,0 0 24px rgba(245,140,60,.4) } }
+@keyframes fx_hammer { 0%{ transform:translate(-140px,-250px) rotate(-54deg) } 70%{ transform:translate(-12px,-20px) rotate(2deg) } 100%{ transform:translate(0,0) rotate(11deg) } }
+@keyframes fx_hammerUp { 0%{ transform:translate(0,0) rotate(11deg); opacity:1 } 100%{ transform:translate(-110px,-150px) rotate(-44deg); opacity:0 } }
+@keyframes fx_squash { 0%{ transform:translateY(0) scaleY(1) scaleX(1) } 18%{ transform:translateY(8px) scaleY(.78) scaleX(1.22) } 40%{ transform:translateY(-10px) scaleY(1.12) scaleX(.9) } 70%{ transform:translateY(0) scaleY(.97) scaleX(1.03) } 100%{ transform:translateY(0) scaleY(1) scaleX(1) } }
 @keyframes fx_spark { 0%{ transform:translate(0,0) scale(1); opacity:0 } 8%{ opacity:1 } 100%{ transform:translate(var(--dx,0),var(--dy,0)) scale(.4); opacity:0 } }
-@keyframes fx_sparkle { 0%{ transform:translate(0,0) scale(0); opacity:1 } 40%{ transform:translate(var(--dx,0),var(--dy,0)) scale(1) } 100%{ transform:translate(var(--dx,0),var(--dy,0)) scale(.3); opacity:0 } }
 @keyframes fx_ring { 0%{ transform:translate(-50%,-50%) scale(.2); opacity:0 } 8%{ opacity:.9 } 100%{ transform:translate(-50%,-50%) scale(2.6); opacity:0 } }
-@keyframes fx_flash { 0%{ opacity:0 } 8%{ opacity:.9 } 100%{ opacity:0 } }
+@keyframes fx_flash { 0%{ opacity:0 } 8%{ opacity:.85 } 100%{ opacity:0 } }
 @keyframes fx_badge { 0%{ transform:translate(-50%,-50%) scale(.2); opacity:0 } 35%{ transform:translate(-50%,-50%) scale(1.3); opacity:1 } 60%{ transform:translate(-50%,-50%) scale(.95) } 80%{ transform:translate(-50%,-50%) scale(1.05) } 100%{ transform:translate(-50%,-58%) scale(1); opacity:0 } }
 @keyframes fx_float { 0%{ transform:translate(-50%,0); opacity:0 } 20%{ opacity:1 } 100%{ transform:translate(-50%,-46px); opacity:0 } }
 @keyframes fx_shakeS { 0%,100%{ transform:translate(0,0) } 25%{ transform:translate(-2px,1px) } 50%{ transform:translate(2px,-1px) } 75%{ transform:translate(-1px,2px) } }
 @keyframes fx_shakeM { 0%,100%{ transform:translate(0,0) } 20%{ transform:translate(-4px,2px) } 40%{ transform:translate(4px,-3px) } 60%{ transform:translate(-3px,3px) } 80%{ transform:translate(3px,-2px) } }
 @keyframes fx_shakeL { 0%,100%{ transform:translate(0,0) } 15%{ transform:translate(-8px,4px) } 30%{ transform:translate(8px,-6px) } 45%{ transform:translate(-7px,6px) } 60%{ transform:translate(7px,-4px) } 75%{ transform:translate(-5px,5px) } 90%{ transform:translate(4px,-3px) } }
 @keyframes fx_shimmer { 0%{ background-position:0% 50% } 100%{ background-position:200% 50% } }
+@keyframes fx_glowPulse { 0%,100%{ opacity:.4 } 50%{ opacity:1 } }
 @keyframes fx_pillar { 0%{ transform:translateX(-50%) scaleY(0); opacity:0 } 25%{ opacity:.9 } 100%{ transform:translateX(-50%) scaleY(1); opacity:0 } }
 @keyframes fx_core { 0%{ transform:scale(.5); opacity:.4 } 30%{ transform:scale(1.3); opacity:1 } 60%{ transform:scale(.92); opacity:.9 } 100%{ transform:scale(1); opacity:.82 } }
 @keyframes fx_coreCharge { 0%{ transform:scale(.5); opacity:.2 } 100%{ transform:scale(.74); opacity:.55 } }
-/* FX02 강화실패 */
 @keyframes fx_vanish { to { opacity:0 } }
 @keyframes fx_crack { 0%{ transform:scaleY(0); opacity:0 } 40%{ transform:scaleY(1); opacity:1 } 80%{ opacity:1 } 100%{ transform:scaleY(1); opacity:0 } }
 @keyframes fx_redflash { 0%{ opacity:0 } 30%{ opacity:.8 } 100%{ opacity:0 } }
@@ -648,63 +44,60 @@ body::after {
 @keyframes fx_drain { 0%{ filter:saturate(1) brightness(1) } 14%{ filter:saturate(.15) brightness(.6) } 60%{ filter:saturate(.2) brightness(.7) } 100%{ filter:saturate(1) brightness(1) } }
 @keyframes fx_brokenIn { 0%{ transform:translate(-50%,-50%) scale(2.4); opacity:0 } 30%{ transform:translate(-50%,-50%) scale(.9); opacity:1 } 45%{ transform:translate(-50%,-50%) scale(1.06) } 60%{ transform:translate(-50%,-50%) scale(1) } 82%{ opacity:1 } 100%{ transform:translate(-50%,-50%) scale(1); opacity:0 } }
 @keyframes fx_brokenShake { 0%,100%{ margin-left:0 } 25%{ margin-left:-3px } 75%{ margin-left:3px } }
-/* FX03 코인변화 */
 @keyframes fx_coinPop { 0%{ transform:scale(1) } 25%{ transform:scale(1.35) translateY(-6px) } 50%{ transform:scale(.92) } 75%{ transform:scale(1.08) } 100%{ transform:scale(1) } }
 @keyframes fx_coinShake { 0%,100%{ transform:translate(0,0) } 20%{ transform:translate(-3px,1px) } 40%{ transform:translate(3px,1px) } 60%{ transform:translate(-2px,1px) } 80%{ transform:translate(2px,1px) } }
-@keyframes fx_denyShake { 0%,100%{ transform:translateX(0) } 20%{ transform:translateX(-4px) } 40%{ transform:translateX(4px) } 60%{ transform:translateX(-3px) } 80%{ transform:translateX(3px) } }
+@keyframes fx_sparkle { 0%{ transform:translate(0,0) scale(0); opacity:1 } 40%{ transform:translate(var(--dx,0),var(--dy,0)) scale(1) } 100%{ transform:translate(var(--dx,0),var(--dy,0)) scale(.3); opacity:0 } }
 @keyframes fx_floatUp { 0%{ transform:translate(-50%,6px); opacity:0 } 22%{ opacity:1 } 100%{ transform:translate(-50%,-42px); opacity:0 } }
 @keyframes fx_floatDown { 0%{ transform:translate(-50%,-6px); opacity:0 } 22%{ opacity:1 } 100%{ transform:translate(-50%,40px); opacity:0 } }
-/* FX04 판매 */
+@keyframes fx_denyShake { 0%,100%{ transform:translateX(0) } 20%{ transform:translateX(-4px) } 40%{ transform:translateX(4px) } 60%{ transform:translateX(-3px) } 80%{ transform:translateX(3px) } }
+@keyframes fx_melt { 0%{ clip-path:inset(0 0 0 0); filter:hue-rotate(0deg) saturate(1) } 100%{ clip-path:inset(100% 0 0 0); filter:hue-rotate(30deg) saturate(1.6) } }
 @keyframes fx_goldWipe { 0%{ height:0% } 100%{ height:100% } }
 @keyframes fx_collapse { 0%{ transform:translateY(0) scaleY(1); opacity:1 } 100%{ transform:translateY(40px) scaleY(.2); opacity:0 } }
 @keyframes fx_fly { 0%{ transform:translate(0,0) scale(1); opacity:0 } 4%{ opacity:1 } 90%{ opacity:1 } 100%{ transform:translate(var(--dx,0),var(--dy,0)) scale(.5); opacity:0 } }
-@keyframes fx_stamp { 0%{ transform:translate(-50%,-50%) scale(2.6) rotate(-12deg); opacity:0 } 30%{ transform:translate(-50%,-50%) scale(.92) rotate(-12deg); opacity:1 } 60%{ transform:translate(-50%,-50%) scale(1) rotate(-12deg); opacity:1 } 85%{ opacity:1 } 100%{ opacity:0 } }
-/* FX05 라운드시작 */
+@keyframes fx_stamp { 0%{ transform:translate(-50%,-50%) scale(2.6) rotate(-12deg); opacity:0 } 30%{ transform:translate(-50%,-50%) scale(.92) rotate(-12deg); opacity:1 } 45%{ transform:translate(-50%,-50%) scale(1.05) rotate(-12deg); opacity:1 } 60%{ transform:translate(-50%,-50%) scale(1) rotate(-12deg); opacity:1 } 85%{ transform:translate(-50%,-50%) scale(1) rotate(-12deg); opacity:1 } 100%{ transform:translate(-50%,-50%) scale(1) rotate(-12deg); opacity:0 } }
 @keyframes fx_dim { 0%{ opacity:0 } 12%{ opacity:.82 } 70%{ opacity:.82 } 100%{ opacity:0 } }
-@keyframes fx_dimOut { 0%{ opacity:.7 } 100%{ opacity:0 } }
 @keyframes fx_roundIn { 0%{ transform:translate(-50%,-50%) scale(3.4); opacity:0 } 22%{ transform:translate(-50%,-50%) scale(.9); opacity:1 } 36%{ transform:translate(-50%,-50%) scale(1.08) } 50%{ transform:translate(-50%,-50%) scale(1) } 78%{ transform:translate(-50%,-50%) scale(1); opacity:1 } 100%{ transform:translate(-50%,-58%) scale(1.05); opacity:0 } }
 @keyframes fx_labelIn { 0%{ transform:translate(-50%,0); opacity:0; letter-spacing:18px } 40%{ opacity:1 } 100%{ transform:translate(-50%,0); opacity:1; letter-spacing:6px } }
 @keyframes fx_emberBurst { 0%{ transform:translate(0,0) scale(1); opacity:0 } 6%{ opacity:1 } 100%{ transform:translate(var(--dx,0),var(--dy,0)) scale(.4); opacity:0 } }
-@keyframes fx_ignite { 0%{ width:0% } 100%{ width:100% } }
+@keyframes fx_ignite { 0%{ width:0% } 100%{ width:72% } }
 @keyframes fx_igniteGlow { 0%,100%{ box-shadow:inset 0 2px 0 rgba(255,255,255,.3) } 50%{ box-shadow:inset 0 2px 0 rgba(255,255,255,.5),0 0 12px rgba(57,230,207,.7) } }
-/* FX06 상점오픈 */
-@keyframes fx_slideOut { 0%{ transform:translateY(0); opacity:1 } 100%{ transform:translateY(230px); opacity:0 } }
+@keyframes fx_slideOut { 0%{ transform:translateY(0); opacity:1 } 100%{ transform:translateY(220px); opacity:0 } }
 @keyframes fx_dropIn { 0%{ transform:translateY(-260px); opacity:0 } 70%{ transform:translateY(8px); opacity:1 } 85%{ transform:translateY(-4px) } 100%{ transform:translateY(0); opacity:1 } }
-@keyframes fx_dealIn { 0%{ transform:translateY(90px) scale(.7); opacity:0 } 70%{ transform:translateY(-6px) scale(1.04); opacity:1 } 100%{ transform:translateY(0) scale(1); opacity:1 } }
 @keyframes fx_signLit { 0%{ opacity:.12; text-shadow:none } 100%{ opacity:1; text-shadow:0 0 10px rgba(245,170,60,.8),1px 2px 0 #000 } }
+@keyframes fx_dealIn { 0%{ transform:translateY(90px) scale(.7); opacity:0 } 70%{ transform:translateY(-6px) scale(1.04); opacity:1 } 100%{ transform:translateY(0) scale(1); opacity:1 } }
 @keyframes fx_signTwinkle { 0%,100%{ opacity:.6; transform:scale(1) } 50%{ opacity:1; transform:scale(1.25) } }
-/* FX07 교전 */
 @keyframes fx_joltL { 0%{ transform:translateX(0) } 30%{ transform:translateX(10px) rotate(4deg) } 60%{ transform:translateX(-4px) } 100%{ transform:translateX(0) } }
 @keyframes fx_joltR { 0%{ transform:translateX(0) } 30%{ transform:translateX(-10px) rotate(-4deg) } 60%{ transform:translateX(4px) } 100%{ transform:translateX(0) } }
-@keyframes fx_clash { 0%{ transform:translate(-50%,-50%) scale(.3); opacity:0 } 12%{ opacity:1 } 100%{ transform:translate(-50%,-50%) scale(1.9); opacity:0 } }
+@keyframes fx_clash { 0%{ transform:translate(-50%,-50%) scale(.3); opacity:1 } 100%{ transform:translate(-50%,-50%) scale(1.8); opacity:0 } }
 @keyframes fx_streak { 0%{ transform:scaleX(0); opacity:0 } 40%{ transform:scaleX(1); opacity:.9 } 100%{ transform:scaleX(1); opacity:0 } }
-@keyframes fx_hitPop { 0%{ transform:translate(-50%,-50%) scale(1) } 40%{ transform:translate(-50%,-50%) scale(1.45) } 100%{ transform:translate(-50%,-50%) scale(1) } }
+@keyframes fx_hitPop { 0%{ transform:translate(-50%,-50%) scale(1) } 40%{ transform:translate(-50%,-50%) scale(1.5) } 100%{ transform:translate(-50%,-50%) scale(1) } }
 @keyframes fx_winGlow { 0%,100%{ filter:drop-shadow(0 0 6px rgba(245,170,60,.5)) } 50%{ filter:drop-shadow(0 0 16px rgba(245,170,60,.9)) } }
 @keyframes fx_resultIn { 0%{ transform:translate(-50%,-50%) scale(2.6); opacity:0 } 40%{ transform:translate(-50%,-50%) scale(.95); opacity:1 } 60%{ transform:translate(-50%,-50%) scale(1.05) } 100%{ transform:translate(-50%,-50%) scale(1); opacity:1 } }
-/* FX08 7성리빌 */
 @keyframes fx_cardShake { 0%,100%{ transform:translate(0,0) } 25%{ transform:translate(-3px,2px) } 50%{ transform:translate(3px,-2px) } 75%{ transform:translate(-2px,-2px) } }
 @keyframes fx_charge { 0%{ transform:scale(.96) } 100%{ transform:scale(1.06) } }
+@keyframes fx_dimOut { 0%{ opacity:.7 } 100%{ opacity:0 } }
 @keyframes fx_raysGrow { 0%{ transform:scale(.2); opacity:0 } 30%{ opacity:.8 } 100%{ transform:scale(1.7); opacity:0 } }
 @keyframes fx_raysSpin { 0%{ transform:rotate(0deg) } 100%{ transform:rotate(360deg) } }
 @keyframes fx_flipScale { 0%{ transform:scaleX(1) } 48%{ transform:scaleX(.06) } 52%{ transform:scaleX(.06) } 100%{ transform:scaleX(1) } }
+@keyframes fx_faceBack { 0%,49%{ opacity:1 } 50%,100%{ opacity:0 } }
+@keyframes fx_faceFront { 0%,49%{ opacity:0 } 50%,100%{ opacity:1 } }
 @keyframes fx_glow { 0%,100%{ filter:brightness(1) } 50%{ filter:brightness(1.25) } }
 @keyframes fx_revealPop { 0%{ transform:scale(.7); opacity:0 } 60%{ transform:scale(1.08); opacity:1 } 100%{ transform:scale(1) } }
-/* FX09 카드레벨업 */
+@keyframes fx_mergeFlyA { 0%{ transform:translate(150px,-26px) scale(1) rotate(6deg); opacity:1 } 64%{ transform:translate(20px,-4px) scale(.8) rotate(2deg); opacity:1 } 100%{ transform:translate(0,0) scale(.16) rotate(0deg); opacity:0 } }
+@keyframes fx_mergeFlyB { 0%{ transform:translate(150px,-26px) scale(1) rotate(6deg); opacity:1 } 64%{ transform:translate(20px,-4px) scale(.8) rotate(2deg); opacity:1 } 100%{ transform:translate(0,0) scale(.16) rotate(0deg); opacity:0 } }
 @keyframes fx_floatXp { 0%{ transform:translate(-50%,0); opacity:0 } 22%{ opacity:1 } 100%{ transform:translate(-50%,-46px); opacity:0 } }
 @keyframes fx_lvBurst { 0%{ transform:translate(-50%,-50%) scale(.2); opacity:0 } 40%{ transform:translate(-50%,-50%) scale(1.2); opacity:1 } 70%{ transform:translate(-50%,-50%) scale(.95) } 100%{ transform:translate(-50%,-66%) scale(1); opacity:0 } }
 @keyframes fx_ringPop { 0%{ transform:translate(-50%,-50%) scale(.3); opacity:0 } 20%{ opacity:.9 } 100%{ transform:translate(-50%,-50%) scale(2.2); opacity:0 } }
 @keyframes fx_lvEmber { 0%{ transform:translate(0,0) scale(1); opacity:0 } 8%{ opacity:1 } 100%{ transform:translate(var(--dx,0),var(--dy,0)) scale(.4); opacity:0 } }
-/* FX11 HP경고 */
 @keyframes fx_vignette { 0%,100%{ opacity:.15 } 50%{ opacity:.75 } }
-@keyframes fx_barPulse { 0%,100%{ filter:brightness(1) } 50%{ filter:brightness(1.5); box-shadow:0 0 14px rgba(232,70,63,.9) } }
+@keyframes fx_barPulse { 0%,100%{ filter:brightness(1); box-shadow:inset 0 2px 0 rgba(255,255,255,.28),inset 0 -3px 0 rgba(0,0,0,.3) } 50%{ filter:brightness(1.5); box-shadow:inset 0 2px 0 rgba(255,255,255,.4),0 0 14px rgba(232,70,63,.9) } }
 @keyframes fx_warnBlink { 0%,100%{ opacity:.25 } 50%{ opacity:1 } }
 @keyframes fx_heartBeat { 0%,100%{ transform:scale(1) } 30%{ transform:scale(1.22) } 45%{ transform:scale(1) } 60%{ transform:scale(1.14) } }
-/* FX15 강화쿨타임 */
+@keyframes fx_skull { 0%,100%{ transform:translateY(0) } 50%{ transform:translateY(-2px) } }
 @keyframes fx_readyFlash { 0%{ box-shadow:0 0 0 0 rgba(245,150,42,0) } 20%{ box-shadow:0 0 0 3px #ffce5a,0 0 18px rgba(245,150,42,.9) } 100%{ box-shadow:0 0 0 0 rgba(245,150,42,0) } }
 @keyframes fx_readyPop { 0%{ transform:scale(1) } 30%{ transform:scale(1.05) } 100%{ transform:scale(1) } }
 @keyframes fx_scan { 0%{ opacity:.3 } 50%{ opacity:.9 } 100%{ opacity:.3 } }
 @keyframes fx_sparkUp { 0%{ transform:translateY(0); opacity:1 } 100%{ transform:translateY(-26px); opacity:0 } }
-/* 로비 */
 @keyframes lobbyGlow { 0%,100%{ text-shadow:0 0 14px rgba(245,170,60,.45),0 0 34px rgba(214,86,46,.3),3px 5px 0 #000 } 50%{ text-shadow:0 0 22px rgba(245,170,60,.75),0 0 48px rgba(214,86,46,.5),3px 5px 0 #000 } }
 @keyframes fx_screenIn { 0%{ transform:translateY(10px) } 100%{ transform:translateY(0) } }
 @keyframes fx_titleIn { 0%{ transform:translateY(-34px) scale(1.45); opacity:0 } 55%{ transform:translateY(0) scale(.96); opacity:1 } 75%{ transform:scale(1.04) } 100%{ transform:scale(1); opacity:1 } }
@@ -720,43 +113,16 @@ body::after {
 @keyframes fx_overlayPop { 0%{ transform:translate(-50%,-50%) scale(.78); opacity:0 } 55%{ transform:translate(-50%,-50%) scale(1.05); opacity:1 } 75%{ transform:translate(-50%,-50%) scale(.98) } 100%{ transform:translate(-50%,-50%) scale(1); opacity:1 } }
 @keyframes fx_toastIn { 0%{ transform:translate(-50%,-14px); opacity:0 } 14%{ transform:translate(-50%,0); opacity:1 } 82%{ transform:translate(-50%,0); opacity:1 } 100%{ transform:translate(-50%,-10px); opacity:0 } }
 @keyframes fx_scanbar { 0%{ transform:translateX(-100%) } 100%{ transform:translateX(220%) } }
-
-/* FX 유틸리티 클래스 */
-.fx-jolt-l { animation: fx_joltL .18s steps(3) both !important; }
-.fx-jolt-r { animation: fx_joltR .18s steps(3) both !important; }
-.fx-ready  { animation: fx_readyPop .3s steps(3) !important; }
-
-/* 강화 버튼 쿨타임 오버레이 (FX15 스타일 — 버튼 내부 bottom-up fill) */
-#btn-enhance { position:relative; overflow:hidden; }
-.enhance-cd-overlay {
-  position:absolute; left:0; right:0; bottom:0; height:0%;
-  background:linear-gradient(rgba(255,180,80,.25),rgba(245,140,50,.5));
-  border-top:2px solid #ffce5a;
-  box-shadow:0 -2px 8px rgba(255,180,80,.6);
-  z-index:3; pointer-events:none;
-  transition:height .06s steps(2);
-}
-.enhance-cd-overlay::after {
-  content:''; position:absolute; top:-1px; left:0; right:0; height:2px;
-  background:#fff0c8; animation:fx_scan .5s steps(3) infinite;
-}
-
-/* HP 경고 비네트 (FX11) */
-#hp-warning-vignette {
-  position:fixed; inset:0; z-index:7000; pointer-events:none;
-  box-shadow:inset 0 0 120px 30px rgba(200,30,25,.9);
-  background:radial-gradient(ellipse 90% 90% at 50% 50%,transparent 55%,rgba(180,25,20,.5));
-  display:none;
-}
-#hp-warning-vignette.active { display:block; }
-/* Google 로그인 버튼 */
-.btn-google {
-  display:flex; align-items:center; gap:10px; justify-content:center;
-  width:220px; height:44px; margin:0 auto;
-  background:#fff; color:#222; border:none;
-  font-family:'Galmuri11',sans-serif; font-size:14px;
-  box-shadow:inset 2px 2px 0 rgba(255,255,255,.9),inset -3px -4px 0 rgba(0,0,0,.15),0 4px 0 #aaa,0 6px 0 #000;
-  cursor:pointer; letter-spacing:.5px;
-}
-.btn-google:active { transform:translateY(2px); box-shadow:inset 2px 2px 0 rgba(255,255,255,.9),inset -3px -4px 0 rgba(0,0,0,.15),0 2px 0 #aaa,0 3px 0 #000; }
-.btn-google .google-g { font-weight:700; font-size:16px; color:#4285f4; font-family:Arial,sans-serif; }
+@keyframes fx_hitA { 0%,100%{ transform:translate(0,0) } 20%{ transform:translate(-6px,3px) } 40%{ transform:translate(6px,-4px) } 60%{ transform:translate(-5px,4px) } 80%{ transform:translate(4px,-2px) } }
+@keyframes fx_hitB { 0%,100%{ transform:translate(0,0) } 20%{ transform:translate(6px,-3px) } 40%{ transform:translate(-6px,4px) } 60%{ transform:translate(5px,-4px) } 80%{ transform:translate(-4px,2px) } }
+@keyframes fx_engDim { 0%{ opacity:0 } 100%{ opacity:1 } }
+@keyframes fx_countIn { 0%{ transform:translate(-50%,-50%) scale(3.2); opacity:0 } 30%{ transform:translate(-50%,-50%) scale(.92); opacity:1 } 50%{ transform:translate(-50%,-50%) scale(1.06) } 70%{ transform:translate(-50%,-50%) scale(1) } 100%{ transform:translate(-50%,-50%) scale(1); opacity:0 } }
+@keyframes fx_btnPress { 0%{ transform:translateY(0) } 30%{ transform:translateY(4px) } 100%{ transform:translateY(0) } }
+@keyframes fx_lvGlow { 0%,100%{ box-shadow:inset 2px 2px 0 rgba(255,255,255,.3),0 4px 0 #245224,0 6px 0 #000,0 0 0 rgba(245,170,60,0) } 45%{ box-shadow:inset 2px 2px 0 rgba(255,255,255,.3),0 4px 0 #245224,0 6px 0 #000,0 0 22px rgba(245,170,60,.85) } }
+@keyframes fx_lvNumPop { 0%{ transform:scale(1); color:#ffd76a } 35%{ transform:scale(1.5); color:#fff2c8 } 100%{ transform:scale(1); color:#ffd76a } }
+@keyframes fx_cardOut { 0%{ transform:translateX(0) rotate(0deg); opacity:1 } 100%{ transform:translateX(-260px) rotate(-14deg); opacity:0 } }
+@keyframes fx_cardDeal { 0%{ transform:translateY(80px) scale(.7); opacity:0 } 70%{ transform:translateY(-6px) scale(1.04); opacity:1 } 100%{ transform:translateY(0) scale(1); opacity:1 } }
+@keyframes fx_frostSpread { 0%{ opacity:0; transform:scale(.4) } 60%{ opacity:1 } 100%{ opacity:1; transform:scale(1) } }
+@keyframes fx_frostLabel { 0%{ transform:translate(-50%,-50%) scale(2.2); opacity:0 } 35%{ transform:translate(-50%,-50%) scale(.94); opacity:1 } 55%{ transform:translate(-50%,-50%) scale(1.04) } 100%{ transform:translate(-50%,-50%) scale(1); opacity:1 } }
+@keyframes fx_frostFade { 0%{ opacity:1 } 100%{ opacity:0 } }
+@keyframes fx_freezeNumPop { 0%{ transform:scale(1); color:#7fe4dc } 35%{ transform:scale(1.5); color:#d6fffb } 100%{ transform:scale(1); color:#7fe4dc } }
