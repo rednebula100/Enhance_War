@@ -117,6 +117,15 @@
 
     const sellCoinLbl = document.getElementById('sell-coin-label');
     if (sellCoinLbl) sellCoinLbl.textContent = `+${sellVal} 코인`;
+
+    const costLbl = document.getElementById('enhance-cost-label');
+    const rateLbl = document.getElementById('enhance-rate-label');
+    if (costLbl || rateLbl) {
+      const cost = Math.round(10 * Math.pow(1.25, state.myLevel));
+      const rate = Math.round(5 + 90 * Math.pow(0.82, state.myLevel));
+      if (costLbl) { costLbl.textContent = cost + 'c'; costLbl.style.color = state.myCoins >= cost ? '#ffd76a' : '#e87a72'; }
+      if (rateLbl) { rateLbl.textContent = rate + '%'; rateLbl.style.color = rate >= 60 ? '#7fe47c' : rate >= 30 ? '#f5a93a' : '#e87a72'; }
+    }
   }
 
   function _updateOppState({ level, atk }) {
