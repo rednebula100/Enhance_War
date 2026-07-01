@@ -293,13 +293,13 @@
   let _shieldDrawerOpen = false;
   function _toggleShieldDrawer() {
     _shieldDrawerOpen = !_shieldDrawerOpen;
-    const panel = document.getElementById('my-panel');
-    const track = document.getElementById('shield-drawer-track');
+    const widget = document.getElementById('shield-widget');
     const toggle = document.getElementById('shield-drawer-toggle');
-    // 패널 자체의 너비와 트랙 너비를 같은 폭(220px)만큼 같이 늘려야 강화/판매 칸이 제자리에 고정된 채
-    // 방지권 영역만 옆에서 밀려나오는 것처럼 보임
-    if (panel) panel.style.width = _shieldDrawerOpen ? '980px' : '760px';
-    if (track) track.style.width = _shieldDrawerOpen ? '220px' : '0';
+    // shield-widget은 내 패널과 독립적인 절대위치 요소 — 내 패널 크기는 전혀 바뀌지 않고,
+    // translateX(0)(기본 위치=강화/판매 칸 뒤에 숨음) <-> translateX(198px)(패널 바깥으로 슬라이드 아웃)만 토글
+    if (widget) widget.style.transform = _shieldDrawerOpen
+      ? 'translateY(-50%) translateX(198px)'
+      : 'translateY(-50%) translateX(0)';
     if (toggle) toggle.textContent = _shieldDrawerOpen ? '<' : '>';
   }
 
