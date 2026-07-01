@@ -423,7 +423,7 @@ const FX = (() => {
     if (!root) return;
     const { x, y } = anchorCenter(anchor || root);
     const stamp = document.createElement('div');
-    stamp.style.cssText = 'position:absolute;left:' + x + 'px;top:' + y + 'px;transform:translate(-50%,-50%) scale(2.6) rotate(-12deg);font-family:Galmuri11,sans-serif;font-size:28px;color:#4a8fd0;text-shadow:3px 3px 0 #000;letter-spacing:2px;animation:fx_stamp 1.1s steps(9) both;z-index:25;pointer-events:none;';
+    stamp.style.cssText = 'position:absolute;left:' + x + 'px;top:' + y + 'px;transform:translate(-50%,-50%) scale(2.6) rotate(-12deg);font-family:Galmuri11,sans-serif;font-size:30px;color:#6f9fd6;border:4px solid #6f9fd6;padding:6px 16px;box-shadow:0 0 12px rgba(111,159,214,.5);text-shadow:2px 2px 0 #000;letter-spacing:2px;white-space:nowrap;animation:fx_stamp 1.1s steps(9) both;z-index:25;pointer-events:none;';
     stamp.textContent = 'SOLD!';
     root.appendChild(stamp);
     setTimeout(() => stamp.remove(), 1200);

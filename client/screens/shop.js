@@ -110,6 +110,21 @@
     const e2 = document.getElementById('shop-coins2'); if (e2) e2.textContent = Math.floor(c) + ' 코인';
   }
 
+  function _showSellConfirm(message, onConfirm) {
+    const overlay = document.getElementById('sell-confirm-overlay');
+    const msgEl = document.getElementById('sell-confirm-msg');
+    const okBtn = document.getElementById('btn-sell-confirm-ok');
+    const cancelBtn = document.getElementById('btn-sell-confirm-cancel');
+    if (!overlay || !msgEl || !okBtn || !cancelBtn) return;
+    msgEl.innerHTML = message;
+    overlay.style.display = 'flex';
+    _triggerAnim(overlay, 'fx_backdropIn .25s steps(3) both');
+    _triggerAnim(overlay.firstElementChild, 'fx_overlayPop .3s steps(6) both');
+    const close = () => { overlay.style.display = 'none'; };
+    okBtn.onclick = () => { close(); onConfirm(); };
+    cancelBtn.onclick = close;
+  }
+
   function _showToast(msg) {
     let t = document.getElementById('shop-toast');
     if (!t) {
@@ -126,7 +141,23 @@
     t.textContent = msg;
   }
 
+  function _resetToCardTab() {
+    if (!_upgPanelOpen) return;
+    _upgPanelOpen = false;
+    const title = document.getElementById('shop-panel-title');
+    const toggleBtn = document.getElementById('btn-toggle-upg-panel');
+    const buttonsRow = document.getElementById('shop-buttons-row');
+    const cardArea = document.getElementById('shop-card-area');
+    const upgradePanel = document.getElementById('shop-upgrade-panel');
+    if (title) title.textContent = '카드 상점';
+    if (toggleBtn) toggleBtn.textContent = '→';
+    if (buttonsRow) { buttonsRow.style.display = 'flex'; buttonsRow.style.animation = ''; }
+    if (cardArea) { cardArea.style.display = 'flex'; cardArea.style.animation = ''; }
+    if (upgradePanel) { upgradePanel.style.display = 'none'; upgradePanel.style.animation = ''; }
+  }
+
   function onShopStart({ timeLeft, cards, myState }) {
+    _resetToCardTab();
     currentCoins = myState?.coins ?? currentCoins;
     hand         = myState?.hand  ?? hand;
     shopLevel    = myState?.shopLevel ?? shopLevel;
@@ -241,9 +272,9 @@
         slot.title = card.name + '\n' + (card.description ?? '') + '\n\n클릭하여 판매 (+' + (card.sellPrice ?? Math.floor(card.cost * 0.5)) + '코인)';
         slot.addEventListener('click', () => {
           const sp = card.sellPrice ?? Math.floor(card.cost * 0.5);
-          if (confirm(`'${card.name}' 카드를 판매하겠습니까?\n(+${sp}코인)`)) {
+          _showSellConfirm(`'${card.name}' 카드를 판매하시겠습니까?<br>(+${sp}코인)`, () => {
             getSocket()?.emit('sell_hand_card', { cardId: card.id });
-          }
+          });
         });
       } else {
         slot.style.cssText = 'width:136px;height:180px;flex:none;box-sizing:border-box;background:#1e1c24;border:2px solid #2a2836;box-shadow:inset 0 0 0 1px #34303c;';

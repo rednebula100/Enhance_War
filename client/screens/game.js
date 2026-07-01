@@ -251,6 +251,7 @@
     document.getElementById('btn-sell').disabled = false;
     _startTimer(timeLeft, 'timer-bar', 'timer-text');
     _updateMyState({ level: myState.level, combo: myState.combo, coins: myState.coins, currentSuccessRate, currentCost, currentSellValue });
+    _closeShieldDrawer();
     _renderShieldWidget(myState.shieldCount ?? 0, myState.shieldPurchaseCount ?? 0);
     _updateOppState({ level: opponentState.level, atk: opponentState.atk });
     _updateHp(myState.hp, opponentState.hp);
@@ -291,6 +292,13 @@
   }
 
   let _shieldDrawerOpen = false;
+  function _closeShieldDrawer() {
+    _shieldDrawerOpen = false;
+    const widget = document.getElementById('shield-widget');
+    const toggle = document.getElementById('shield-drawer-toggle');
+    if (widget) widget.style.transform = 'translateY(-50%) translateX(0)';
+    if (toggle) toggle.textContent = '>';
+  }
   function _toggleShieldDrawer() {
     _shieldDrawerOpen = !_shieldDrawerOpen;
     const widget = document.getElementById('shield-widget');
