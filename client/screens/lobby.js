@@ -51,7 +51,7 @@
   function onAuthOk({ displayName, money, bestRound }) {
     _playerData = { displayName: displayName || '플레이어', money: money || 0, bestRound: bestRound || 0 };
     document.getElementById('menu-name').textContent = displayName || '플레이어';
-    document.getElementById('menu-money').textContent = `💰 ${(money || 0).toLocaleString()}원`;
+    document.getElementById('menu-money').textContent = `${(money || 0).toLocaleString()}원`;
   }
 
   function onQueueJoined() {
