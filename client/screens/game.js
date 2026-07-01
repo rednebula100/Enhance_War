@@ -13,7 +13,10 @@
   let _cooldownRAF = null;
   let _shieldCount = 0;
   let _shieldQty = 1;
-  let state = { myHp: 100, oppHp: 100, myLevel: 0, myCombo: 0, myCoins: 100 };
+  let state = {
+    myHp: 100, oppHp: 100, myLevel: 0, myCombo: 0, myCoins: 100,
+    currentSuccessRate: null, currentCost: null, currentSellValue: null,
+  };
 
   function init(socketGetter) {
     getSocket = socketGetter;
@@ -125,10 +128,13 @@
     if (typeof FX !== 'undefined') FX.hpWarning(myHp > 0 && myHp <= 30, myHp);
   }
 
-  function _updateMyState({ level, combo, coins }) {
+  function _updateMyState({ level, combo, coins, currentSuccessRate, currentCost, currentSellValue }) {
     state.myLevel = level ?? state.myLevel;
     state.myCombo = combo ?? state.myCombo;
     state.myCoins = coins ?? state.myCoins;
+    if (currentSuccessRate !== undefined) state.currentSuccessRate = currentSuccessRate;
+    if (currentCost !== undefined) state.currentCost = currentCost;
+    if (currentSellValue !== undefined) state.currentSellValue = currentSellValue;
 
     const lb = document.getElementById('my-level-badge');   if (lb) lb.textContent = `Lv.${state.myLevel}`;
     const sb = document.getElementById('my-sword-badge');   if (sb) sb.textContent = SWORD_NAMES[state.myLevel] || `Lv.${state.myLevel}`;
@@ -137,20 +143,24 @@
     const coinsEl = document.getElementById('my-coins');    if (coinsEl) coinsEl.textContent = Math.floor(state.myCoins);
     const comboEl = document.getElementById('my-combo');    if (comboEl) comboEl.textContent = `콤보 ${state.myCombo}`;
 
-    const sellVal = Math.floor(Math.pow(state.myLevel, 1.7) * 18 * (1 + state.myCombo * 0.15));
+    // 판매가치/강화비용/성공률은 서버가 카드 패시브 + 스탯 업그레이드 보너스를 합산해 내려준 값을 그대로 표시
+    // (클라이언트에서 레벨만으로 재계산하지 않음)
     const sp = document.getElementById('sell-preview');
-    if (sp) sp.textContent = state.myLevel > 0 ? `판매 시 +${sellVal}코인` : '';
+    if (sp && state.currentSellValue != null) sp.textContent = state.myLevel > 0 ? `판매 시 +${state.currentSellValue}코인` : '';
 
     const sellCoinLbl = document.getElementById('sell-coin-label');
-    if (sellCoinLbl) sellCoinLbl.textContent = `+${sellVal} 코인`;
+    if (sellCoinLbl && state.currentSellValue != null) sellCoinLbl.textContent = `+${state.currentSellValue} 코인`;
 
     const costLbl = document.getElementById('enhance-cost-label');
+    if (costLbl && state.currentCost != null) {
+      costLbl.textContent = state.currentCost + 'c';
+      costLbl.style.color = state.myCoins >= state.currentCost ? '#ffd76a' : '#e87a72';
+    }
     const rateLbl = document.getElementById('enhance-rate-label');
-    if (costLbl || rateLbl) {
-      const cost = Math.round(10 * Math.pow(1.25, state.myLevel));
-      const rate = Math.round(5 + 90 * Math.pow(0.88, state.myLevel));
-      if (costLbl) { costLbl.textContent = cost + 'c'; costLbl.style.color = state.myCoins >= cost ? '#ffd76a' : '#e87a72'; }
-      if (rateLbl) { rateLbl.textContent = rate + '%'; rateLbl.style.color = rate >= 60 ? '#7fe47c' : rate >= 30 ? '#f5a93a' : '#e87a72'; }
+    if (rateLbl && state.currentSuccessRate != null) {
+      const ratePct = Math.round(state.currentSuccessRate * 100);
+      rateLbl.textContent = ratePct + '%';
+      rateLbl.style.color = ratePct >= 60 ? '#7fe47c' : ratePct >= 30 ? '#f5a93a' : '#e87a72';
     }
   }
 
@@ -229,7 +239,7 @@
     _buildHandSlots('hand-bar');
   }
 
-  function onRoundStart({ round, timeLeft, myState, opponentState, cooldownMs }) {
+  function onRoundStart({ round, timeLeft, myState, opponentState, cooldownMs, currentSuccessRate, currentCost, currentSellValue }) {
     document.getElementById('round-label').textContent = `Round ${round}`;
     cancelAnimationFrame(_cooldownRAF);
     const btn = document.getElementById('btn-enhance');
@@ -238,7 +248,7 @@
     const fill3 = document.getElementById('enhance-cooldown-fill'); if (fill3) fill3.style.height = '0%';
     document.getElementById('btn-sell').disabled = false;
     _startTimer(timeLeft, 'timer-bar', 'timer-text');
-    _updateMyState({ level: myState.level, combo: myState.combo, coins: myState.coins });
+    _updateMyState({ level: myState.level, combo: myState.combo, coins: myState.coins, currentSuccessRate, currentCost, currentSellValue });
     _renderShieldWidget(myState.shieldCount ?? 0);
     _updateOppState({ level: opponentState.level, atk: opponentState.atk });
     _updateHp(myState.hp, opponentState.hp);
@@ -247,9 +257,9 @@
     if (typeof FX !== 'undefined') FX.roundStart(round);
   }
 
-  function onEnhanceResult({ success, level, combo, coins, hand, cooldownMs, shieldConsumed, shieldCount }) {
+  function onEnhanceResult({ success, level, combo, coins, hand, cooldownMs, shieldConsumed, shieldCount, currentSuccessRate, currentCost, currentSellValue }) {
     const prevCoins = state.myCoins;
-    _updateMyState({ level, combo, coins });
+    _updateMyState({ level, combo, coins, currentSuccessRate, currentCost, currentSellValue });
     if (hand) _updateHand(hand, 'hand-bar');
     _playAnvilHit();
     if (cooldownMs) _startCooldown(cooldownMs);
@@ -304,8 +314,8 @@
     const n = _shieldCount, q = _shieldQty;
     if (cstEl) cstEl.textContent = (100 * (Math.pow(2, n + q + 1) - Math.pow(2, n + 1) - q)) + 'c';
   }
-  function onSellResult({ gained, coins, hand }) {
-    _updateMyState({ level: 0, combo: 0, coins });
+  function onSellResult({ gained, coins, hand, currentSuccessRate, currentCost, currentSellValue }) {
+    _updateMyState({ level: 0, combo: 0, coins, currentSuccessRate, currentCost, currentSellValue });
     if (hand) _updateHand(hand, 'hand-bar');
     if (typeof FX !== 'undefined') {
       FX.sell(gained ?? 0);

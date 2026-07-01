@@ -458,6 +458,20 @@ class GameRoom {
     return Math.max(200, cd);
   }
 
+  // 클라이언트 UI 표시용 최종 수치 — 카드 패시브 + 스탯 업그레이드 보너스가 모두 합산된 값
+  // (클라이언트가 레벨만으로 독자 재계산하지 않도록 서버가 계산 결과를 그대로 내려줌)
+  _currentPreview(idx) {
+    const sword = this.swords[idx];
+    const m = this._passiveMods(idx);
+    const crackedPenalty = -(sword.crackedPenalty ?? 0);
+    const rawRate = enhanceSuccessRate(sword.level) + m.successRateBonus + crackedPenalty;
+    return {
+      currentSuccessRate: Math.max(0, Math.min(1, rawRate)),
+      currentCost: Math.ceil(enhanceCost(sword.level) * m.costMul),
+      currentSellValue: Math.floor(sellValue(sword.level, sword.combo) * m.sellMul),
+    };
+  }
+
   _emit(idx, event, data) {
     const socket = this.players[idx].socket;
     if (socket) socket.emit(event, data);
@@ -500,6 +514,7 @@ class GameRoom {
         myState: { ...this.swords[i], hand: [...this.swords[i].hand] },
         opponentState: this._publicSwordState(1 - i),
         cooldownMs: this._enhanceCooldown(i),
+        ...this._currentPreview(i),
       });
     });
 
@@ -552,6 +567,7 @@ class GameRoom {
         success: false, shieldConsumed: true, shieldCount: sword.shieldCount,
         level: sword.level, combo: sword.combo, coins: sword.coins,
         cooldownMs: this._enhanceCooldown(idx),
+        ...this._currentPreview(idx),
       });
       this._emit(1 - idx, 'opponent_update', {
         level: sword.level, atk: attackPower(sword.level), handCount: this.swords[idx].hand.length,
@@ -566,6 +582,7 @@ class GameRoom {
     this._emit(idx, 'enhance_result', {
       success, level: sword.level, combo: sword.combo, coins: sword.coins,
       cooldownMs: this._enhanceCooldown(idx),
+      ...this._currentPreview(idx),
     });
     // 상대에게 실시간 브로드캐스트 (거울 UI 핵심 텐션)
     this._emit(1 - idx, 'opponent_update', {
@@ -582,7 +599,7 @@ class GameRoom {
     sword.level = 0;
     sword.combo = 0;
 
-    this._emit(idx, 'sell_result', { gained, coins: sword.coins });
+    this._emit(idx, 'sell_result', { gained, coins: sword.coins, ...this._currentPreview(idx) });
     this._emit(1 - idx, 'opponent_update', { level: 0, atk: 0, handCount: this.swords[idx].hand.length });
   }
 
