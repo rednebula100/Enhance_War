@@ -243,7 +243,7 @@
     </div>
 
     <!-- 내 패널 -->
-    <div style="width:760px;background:#26242e;border:2px solid #07070a;box-shadow:inset 0 0 0 2px #3a3946,inset 4px 4px 0 rgba(255,255,255,.05),inset -4px -6px 0 rgba(0,0,0,.5),0 6px 0 rgba(0,0,0,.5);display:flex;align-items:center;gap:16px;padding:16px 20px;box-sizing:border-box;flex:none;">
+    <div style="position:relative;width:760px;background:#26242e;border:2px solid #07070a;box-shadow:inset 0 0 0 2px #3a3946,inset 4px 4px 0 rgba(255,255,255,.05),inset -4px -6px 0 rgba(0,0,0,.5),0 6px 0 rgba(0,0,0,.5);display:flex;align-items:center;gap:16px;padding:16px 20px;box-sizing:border-box;flex:none;">
       <div style="width:182px;display:flex;flex-direction:column;gap:9px;flex:none;">
         <div style="display:flex;align-items:center;gap:10px;">
           <div style="width:56px;height:56px;flex:none;background:#191820;border:2px solid #000;box-shadow:inset 2px 2px 0 rgba(255,255,255,.07),inset -2px -2px 0 rgba(0,0,0,.45),0 0 10px rgba(245,150,42,.25);display:flex;flex-direction:column;align-items:center;justify-content:center;">
@@ -325,21 +325,27 @@
           <span style="font-family:Galmuri11,sans-serif;font-size:18px;color:#0e2438;text-shadow:0 1px 0 rgba(255,255,255,.25);letter-spacing:2px;">판매</span>
           <span style="font-family:Galmuri7,monospace;font-size:9px;color:#16344f;" id="sell-coin-label">+0 코인</span>
         </button>
-        <!-- §13-2 방지권 위젯 -->
-        <div id="shield-widget" style="width:172px;box-sizing:border-box;padding:7px 10px;background:#1e1618;border:2px solid #3a2828;display:flex;flex-direction:column;gap:5px;">
-          <div style="display:flex;align-items:center;justify-content:space-between;">
-            <span style="font-family:Galmuri11,sans-serif;font-size:13px;color:#ffd76a;">🛡 방지권</span>
-            <span style="font-family:Galmuri7,monospace;font-size:10px;color:#cca060;">x<span id="shield-count">0</span></span>
-          </div>
-          <div style="display:flex;align-items:center;gap:4px;">
-            <button id="btn-shield-minus" style="width:22px;height:22px;background:linear-gradient(#3a3650,#28243a);border:2px solid #4a4560;color:#b0aad6;font-family:Galmuri7,monospace;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;">-</button>
-            <span id="shield-qty" style="font-family:Galmuri7,monospace;font-size:10px;color:#ffd76a;min-width:14px;text-align:center;">1</span>
-            <button id="btn-shield-plus" style="width:22px;height:22px;background:linear-gradient(#3a3650,#28243a);border:2px solid #4a4560;color:#b0aad6;font-family:Galmuri7,monospace;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;">+</button>
-            <button id="btn-buy-shield" style="flex:1;height:22px;background:linear-gradient(#9d4e2a,#7a3618);border:2px solid #000;box-shadow:0 2px 0 #3a1800;color:#ffd090;font-family:Galmuri7,monospace;font-size:8px;cursor:pointer;padding:0 4px;">구매 <span id="shield-buy-cost">100c</span></button>
+      </div>
+
+      <!-- §13-2 방지권 서랍 (내 패널 오른쪽 끝에 붙는 슬라이드 패널, position:absolute라 손패 바 레이아웃에 영향 없음) -->
+      <div id="shield-drawer-toggle" style="position:absolute;top:50%;left:100%;transform:translateY(-50%);width:22px;height:56px;background:linear-gradient(#3a3650,#28243a);border:2px solid #4a4560;box-shadow:2px 2px 0 rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;cursor:pointer;color:#b0aad6;font-family:Galmuri7,monospace;font-size:12px;z-index:6;">&gt;</div>
+      <div id="shield-drawer-track" style="position:absolute;top:50%;left:calc(100% + 22px);transform:translateY(-50%);width:0;height:82px;overflow:hidden;transition:width .3s steps(6);z-index:5;">
+        <div style="width:196px;height:82px;box-sizing:border-box;padding:8px;background:#26242e;border:2px solid #07070a;box-shadow:inset 0 0 0 2px #3a3946,inset 2px 2px 0 rgba(255,255,255,.05);display:flex;align-items:center;">
+          <div id="shield-widget" style="width:172px;box-sizing:border-box;padding:7px 10px;background:#1e1618;border:2px solid #3a2828;display:flex;flex-direction:column;gap:5px;flex:none;">
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+              <span style="font-family:Galmuri11,sans-serif;font-size:13px;color:#ffd76a;">🛡 방지권</span>
+              <span style="font-family:Galmuri7,monospace;font-size:10px;color:#cca060;">x<span id="shield-count">0</span></span>
+            </div>
+            <div style="display:flex;align-items:center;gap:4px;">
+              <button id="btn-shield-minus" style="width:22px;height:22px;background:linear-gradient(#3a3650,#28243a);border:2px solid #4a4560;color:#b0aad6;font-family:Galmuri7,monospace;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;">-</button>
+              <span id="shield-qty" style="font-family:Galmuri7,monospace;font-size:10px;color:#ffd76a;min-width:14px;text-align:center;">1</span>
+              <button id="btn-shield-plus" style="width:22px;height:22px;background:linear-gradient(#3a3650,#28243a);border:2px solid #4a4560;color:#b0aad6;font-family:Galmuri7,monospace;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;">+</button>
+              <button id="btn-buy-shield" style="flex:1;height:22px;background:linear-gradient(#9d4e2a,#7a3618);border:2px solid #000;box-shadow:0 2px 0 #3a1800;color:#ffd090;font-family:Galmuri7,monospace;font-size:8px;cursor:pointer;padding:0 4px;">구매 <span id="shield-buy-cost">100c</span></button>
+            </div>
           </div>
         </div>
       </div>
-      
+
     </div>
 
     <!-- 손패 바 -->

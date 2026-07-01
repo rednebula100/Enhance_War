@@ -12,6 +12,7 @@
   let timerInterval = null;
   let _cooldownRAF = null;
   let _shieldCount = 0;
+  let _shieldPurchaseCount = 0;
   let _shieldQty = 1;
   let state = {
     myHp: 100, oppHp: 100, myLevel: 0, myCombo: 0, myCoins: 100,
@@ -33,6 +34,7 @@
     });
     document.getElementById('btn-shield-minus')?.addEventListener('click', () => _updateShieldQty(-1));
     document.getElementById('btn-shield-plus')?.addEventListener('click',  () => _updateShieldQty(+1));
+    document.getElementById('shield-drawer-toggle')?.addEventListener('click', _toggleShieldDrawer);
 
     document.getElementById('btn-back-menu').addEventListener('click', () => {
       showScreen('screen-menu');
@@ -234,7 +236,7 @@
     state.myHp = 100; state.oppHp = 100;
     _updateHp(100, 100);
     _updateMyState({ level: myState.level, combo: myState.combo, coins: myState.coins });
-    _renderShieldWidget(myState.shieldCount ?? 0);
+    _renderShieldWidget(myState.shieldCount ?? 0, myState.shieldPurchaseCount ?? 0);
     _updateOppState({ level: opponentState.level, atk: opponentState.atk });
     _buildHandSlots('hand-bar');
   }
@@ -249,7 +251,7 @@
     document.getElementById('btn-sell').disabled = false;
     _startTimer(timeLeft, 'timer-bar', 'timer-text');
     _updateMyState({ level: myState.level, combo: myState.combo, coins: myState.coins, currentSuccessRate, currentCost, currentSellValue });
-    _renderShieldWidget(myState.shieldCount ?? 0);
+    _renderShieldWidget(myState.shieldCount ?? 0, myState.shieldPurchaseCount ?? 0);
     _updateOppState({ level: opponentState.level, atk: opponentState.atk });
     _updateHp(myState.hp, opponentState.hp);
     state.myHp = myState.hp; state.oppHp = opponentState.hp;
@@ -288,8 +290,18 @@
     _renderShieldWidget();
   }
 
-  function _renderShieldWidget(count) {
+  let _shieldDrawerOpen = false;
+  function _toggleShieldDrawer() {
+    _shieldDrawerOpen = !_shieldDrawerOpen;
+    const track = document.getElementById('shield-drawer-track');
+    const toggle = document.getElementById('shield-drawer-toggle');
+    if (track) track.style.width = _shieldDrawerOpen ? '196px' : '0';
+    if (toggle) toggle.textContent = _shieldDrawerOpen ? '<' : '>';
+  }
+
+  function _renderShieldWidget(count, purchaseCount) {
     if (count !== undefined) _shieldCount = count;
+    if (purchaseCount !== undefined) _shieldPurchaseCount = purchaseCount;
     const cntEl = document.getElementById('shield-count');
     const qtyEl = document.getElementById('shield-qty');
     const cstEl = document.getElementById('shield-buy-cost');
@@ -311,8 +323,9 @@
     if (buyBtn) buyBtn.disabled = false;
     if (plusBtn) plusBtn.disabled = _shieldQty >= maxBuy;
     if (minBtn) minBtn.disabled = _shieldQty <= 1;
-    const n = _shieldCount, q = _shieldQty;
-    if (cstEl) cstEl.textContent = (100 * (Math.pow(2, n + q + 1) - Math.pow(2, n + 1) - q)) + 'c';
+    // 가격은 보유량이 아니라 이번 라운드 구매 횟수(_shieldPurchaseCount) 기준 — 서버와 동일한 공식
+    const p = _shieldPurchaseCount, q = _shieldQty;
+    if (cstEl) cstEl.textContent = (100 * (Math.pow(2, p + q + 1) - Math.pow(2, p + 1) - q)) + 'c';
   }
   function onSellResult({ gained, coins, hand, currentSuccessRate, currentCost, currentSellValue }) {
     _updateMyState({ level: 0, combo: 0, coins, currentSuccessRate, currentCost, currentSellValue });
@@ -357,9 +370,9 @@
     if (effect === 'stolen' && amount > 0) _flashDamage(`-${amount} 코인!`);
   }
 
-  function onBuyShieldResult({ success, shieldCount, coins, reason }) {
+  function onBuyShieldResult({ success, shieldCount, shieldPurchaseCount, coins, reason }) {
     if (!success) return;
-    _renderShieldWidget(shieldCount);
+    _renderShieldWidget(shieldCount, shieldPurchaseCount);
     _updateMyState({ level: state.myLevel, combo: state.myCombo, coins });
   }
 

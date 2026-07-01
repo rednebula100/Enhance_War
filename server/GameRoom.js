@@ -127,12 +127,12 @@ class GameRoom {
         shopLevel: 1, lastEnhanceMs: 0, insuranceActive: false, slowDebuffExpiry: 0,
         crackedPenalty: 0, invincible: false, godSword: false,
         rerollsThisShop: 0, freezeLeft: 2, frozen: false, frozenCards: null,
-        statUpgrades: { successLv: 0, successBonus: 0, cooldownLv: 0, cooldownMul: 1.0 }, shieldCount: 0 },
+        statUpgrades: { successLv: 0, successBonus: 0, cooldownLv: 0, cooldownMul: 1.0 }, shieldCount: 0, shieldPurchaseCount: 0 },
       { hp: GAME_CONFIG.PLAYER_HP, coins: GAME_CONFIG.STARTING_COINS, level: 0, combo: 0, hand: [],
         shopLevel: 1, lastEnhanceMs: 0, insuranceActive: false, slowDebuffExpiry: 0,
         crackedPenalty: 0, invincible: false, godSword: false,
         rerollsThisShop: 0, freezeLeft: 2, frozen: false, frozenCards: null,
-        statUpgrades: { successLv: 0, successBonus: 0, cooldownLv: 0, cooldownMul: 1.0 }, shieldCount: 0 },
+        statUpgrades: { successLv: 0, successBonus: 0, cooldownLv: 0, cooldownMul: 1.0 }, shieldCount: 0, shieldPurchaseCount: 0 },
     ];
     this.round = 0;
     this.zeroAtkStreak = 0;
@@ -377,20 +377,23 @@ class GameRoom {
   handleBuyShield(playerIdx, qty) {
     if (this.phase !== 'ROUND') return;
     const sword = this.swords[playerIdx];
-    const n = sword.shieldCount;
+    const p = sword.shieldPurchaseCount;
     const base = GAME_CONFIG.SHIELD_BASE_COST;
-    const maxBuy = Math.min(qty, GAME_CONFIG.SHIELD_MAX_COUNT - n);
+    const maxBuy = Math.min(qty, GAME_CONFIG.SHIELD_MAX_COUNT - sword.shieldCount);
     if (maxBuy <= 0) {
       return this._emit(playerIdx, 'buy_shield_result', { success: false, reason: 'MAX_COUNT' });
     }
-    const totalCost = base * (Math.pow(2, n + maxBuy + 1) - Math.pow(2, n + 1) - maxBuy);
+    // 가격은 보유량이 아니라 이번 라운드 구매 횟수(p) 기준 — 라운드 시작 시 리셋됨
+    const totalCost = base * (Math.pow(2, p + maxBuy + 1) - Math.pow(2, p + 1) - maxBuy);
     if (sword.coins < totalCost) {
       return this._emit(playerIdx, 'buy_shield_result', { success: false, reason: 'INSUFFICIENT_COINS' });
     }
     sword.coins -= totalCost;
     sword.shieldCount += maxBuy;
+    sword.shieldPurchaseCount += maxBuy;
     this._emit(playerIdx, 'buy_shield_result', {
-      success: true, shieldCount: sword.shieldCount, coins: sword.coins, bought: maxBuy, spent: totalCost,
+      success: true, shieldCount: sword.shieldCount, shieldPurchaseCount: sword.shieldPurchaseCount,
+      coins: sword.coins, bought: maxBuy, spent: totalCost,
     });
   }
   handleDisconnect(playerIdx) {
@@ -496,6 +499,9 @@ class GameRoom {
         if (card.id === 'c009') grant += 30; // 풍요의 손
       }
       sword.coins += grant;
+
+      // §13-2 방지권: 가격은 보유량이 아니라 이번 라운드 구매 횟수 기준 — 라운드마다 리셋
+      sword.shieldPurchaseCount = 0;
 
       // c014 보험증서: 라운드 시작마다 보험 활성화
       sword.insuranceActive = sword.hand.some(c => c.id === 'c014');
