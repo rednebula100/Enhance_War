@@ -15,6 +15,10 @@ const GAME_CONFIG = {
   HAND_MAX: 8,
   ZERO_ATK_STALEMATE_ROUNDS: 3,  // §5 안전장치: 연속 교착 허용 라운드 수
   STALEMATE_DAMAGE: 5,            // §5 안전장치: 교착 돌파 고정 피해
+  // §13 인게임 업그레이드
+  STAT_SUCCESS_BASE_COST: 200, STAT_SUCCESS_GROWTH: 2, STAT_SUCCESS_PER_LV: 0.05, STAT_SUCCESS_MAX_LV: 4,
+  STAT_CD_BASE_COST: 150,     STAT_CD_GROWTH: 2,     STAT_CD_REDUCE_PER_LV: 0.10, STAT_CD_MAX_LV: 4,
+  SHIELD_BASE_COST: 100, SHIELD_MAX_COUNT: 7,
   SHOP_CARD_COUNT: 4,
   // 상점 레벨별 설정 (§7-2)
   SHOP_LEVEL_CONFIG: [
@@ -122,18 +126,19 @@ class GameRoom {
       { hp: GAME_CONFIG.PLAYER_HP, coins: GAME_CONFIG.STARTING_COINS, level: 0, combo: 0, hand: [],
         shopLevel: 1, lastEnhanceMs: 0, insuranceActive: false, slowDebuffExpiry: 0,
         crackedPenalty: 0, invincible: false, godSword: false,
-        rerollsThisShop: 0, freezeLeft: 2, frozen: false, frozenCards: null },
+        rerollsThisShop: 0, freezeLeft: 2, frozen: false, frozenCards: null,
+        statUpgrades: { successLv: 0, successBonus: 0, cooldownLv: 0, cooldownMul: 1.0 }, shieldCount: 0 },
       { hp: GAME_CONFIG.PLAYER_HP, coins: GAME_CONFIG.STARTING_COINS, level: 0, combo: 0, hand: [],
         shopLevel: 1, lastEnhanceMs: 0, insuranceActive: false, slowDebuffExpiry: 0,
         crackedPenalty: 0, invincible: false, godSword: false,
-        rerollsThisShop: 0, freezeLeft: 2, frozen: false, frozenCards: null },
+        rerollsThisShop: 0, freezeLeft: 2, frozen: false, frozenCards: null,
+        statUpgrades: { successLv: 0, successBonus: 0, cooldownLv: 0, cooldownMul: 1.0 }, shieldCount: 0 },
     ];
     this.round = 0;
     this.zeroAtkStreak = 0;
     this.phase = null;
     this.timer = null;
     this.botInterval = null;
-    this.phaseStartMs = 0;
   }
 
   start() {
@@ -334,24 +339,60 @@ class GameRoom {
     });
   }
 
-  handleSkipRound(playerIdx) {
-    if (this.phase !== 'ROUND') return;
-    const remaining = GAME_CONFIG.ROUND_DURATION_MS - (Date.now() - this.phaseStartMs);
-    if (remaining <= 5000) return;
-    clearTimeout(this.timer);
-    this.timer = setTimeout(() => this._preCombat(), 5000);
-    [0, 1].forEach(i => this._emit(i, 'timer_skip', { phase: 'ROUND', timeLeft: 5 }));
-  }
-
-  handleSkipShop(playerIdx) {
+  handleUpgradeStat(playerIdx, type) {
     if (this.phase !== 'SHOP') return;
-    const remaining = GAME_CONFIG.SHOP_DURATION_MS - (Date.now() - this.phaseStartMs);
-    if (remaining <= 5000) return;
-    clearTimeout(this.timer);
-    this.timer = setTimeout(() => this._startRound(), 5000);
-    [0, 1].forEach(i => this._emit(i, 'timer_skip', { phase: 'SHOP', timeLeft: 5 }));
+    const sword = this.swords[playerIdx];
+    const upg = sword.statUpgrades;
+    if (type === 'success') {
+      if (upg.successLv >= GAME_CONFIG.STAT_SUCCESS_MAX_LV) {
+        return this._emit(playerIdx, 'upgrade_stat_result', { success: false, reason: 'MAX_LEVEL', type });
+      }
+      const cost = Math.round(GAME_CONFIG.STAT_SUCCESS_BASE_COST * Math.pow(GAME_CONFIG.STAT_SUCCESS_GROWTH, upg.successLv));
+      if (sword.coins < cost) {
+        return this._emit(playerIdx, 'upgrade_stat_result', { success: false, reason: 'INSUFFICIENT_COINS', type });
+      }
+      sword.coins -= cost;
+      upg.successLv++;
+      upg.successBonus = upg.successLv * GAME_CONFIG.STAT_SUCCESS_PER_LV;
+    } else if (type === 'cooldown') {
+      if (upg.cooldownLv >= GAME_CONFIG.STAT_CD_MAX_LV) {
+        return this._emit(playerIdx, 'upgrade_stat_result', { success: false, reason: 'MAX_LEVEL', type });
+      }
+      const cost = Math.round(GAME_CONFIG.STAT_CD_BASE_COST * Math.pow(GAME_CONFIG.STAT_CD_GROWTH, upg.cooldownLv));
+      if (sword.coins < cost) {
+        return this._emit(playerIdx, 'upgrade_stat_result', { success: false, reason: 'INSUFFICIENT_COINS', type });
+      }
+      sword.coins -= cost;
+      upg.cooldownLv++;
+      upg.cooldownMul = 1 - upg.cooldownLv * GAME_CONFIG.STAT_CD_REDUCE_PER_LV;
+    } else return;
+    this._emit(playerIdx, 'upgrade_stat_result', {
+      success: true, type,
+      successLv: upg.successLv, successBonus: upg.successBonus,
+      cooldownLv: upg.cooldownLv, cooldownMul: upg.cooldownMul,
+      coins: sword.coins,
+    });
   }
 
+  handleBuyShield(playerIdx, qty) {
+    if (this.phase !== 'ROUND') return;
+    const sword = this.swords[playerIdx];
+    const n = sword.shieldCount;
+    const base = GAME_CONFIG.SHIELD_BASE_COST;
+    const maxBuy = Math.min(qty, GAME_CONFIG.SHIELD_MAX_COUNT - n);
+    if (maxBuy <= 0) {
+      return this._emit(playerIdx, 'buy_shield_result', { success: false, reason: 'MAX_COUNT' });
+    }
+    const totalCost = base * (Math.pow(2, n + maxBuy + 1) - Math.pow(2, n + 1) - maxBuy);
+    if (sword.coins < totalCost) {
+      return this._emit(playerIdx, 'buy_shield_result', { success: false, reason: 'INSUFFICIENT_COINS' });
+    }
+    sword.coins -= totalCost;
+    sword.shieldCount += maxBuy;
+    this._emit(playerIdx, 'buy_shield_result', {
+      success: true, shieldCount: sword.shieldCount, coins: sword.coins, bought: maxBuy, spent: totalCost,
+    });
+  }
   handleDisconnect(playerIdx) {
     if (this.phase === 'ENDED') return;
     clearTimeout(this.timer);
@@ -398,6 +439,8 @@ class GameRoom {
         case 'c018': if (sword.hp <= 50) m.atkBonus += attackPower(sword.level) * 0.30; break; // 복수의 칼날
       }
     }
+    // §13-1 스탯 업그레이드 보너스
+    m.successRateBonus += sword.statUpgrades.successBonus;
     return m;
   }
 
@@ -410,6 +453,7 @@ class GameRoom {
       if (card.id === 'c002') cd *= (1 - 0.10 * lv);  // 민첩한 손놀림
       if (card.id === 'c019') cd *= Math.max(0.1, 1 - 0.05 * this.round); // 시간의 흐름
     }
+    cd *= sword.statUpgrades.cooldownMul;
     if (sword.slowDebuffExpiry && Date.now() < sword.slowDebuffExpiry) cd += 1000; // 저주의 망치
     return Math.max(200, cd);
   }
@@ -470,7 +514,6 @@ class GameRoom {
       scheduleBot();
     }
 
-    this.phaseStartMs = Date.now();
     this.timer = setTimeout(() => this._preCombat(), GAME_CONFIG.ROUND_DURATION_MS);
   }
 
@@ -502,6 +545,18 @@ class GameRoom {
       // c014 보험증서: 실패 1회 무효 (단계 유지, 환불)
       sword.insuranceActive = false;
       sword.coins += cost;
+    } else if (sword.shieldCount > 0) {
+      // §13-2 방지권: 강화 실패 → 검 파괴 방지, 방지권 1개 소모
+      sword.shieldCount--;
+      this._emit(idx, 'enhance_result', {
+        success: false, shieldConsumed: true, shieldCount: sword.shieldCount,
+        level: sword.level, combo: sword.combo, coins: sword.coins,
+        cooldownMs: this._enhanceCooldown(idx),
+      });
+      this._emit(1 - idx, 'opponent_update', {
+        level: sword.level, atk: attackPower(sword.level), handCount: this.swords[idx].hand.length,
+      });
+      return;
     } else {
       if (m.refundOnFail) sword.coins += cost;  // c005 끈기
       sword.level = 0;
@@ -664,11 +719,10 @@ class GameRoom {
       this._emit(i, 'shop_start', {
         timeLeft: GAME_CONFIG.SHOP_DURATION_MS / 1000,
         cards: shopCards,
-        myState: { coins: sword.coins, hand: [...sword.hand], shopLevel: sword.shopLevel },
+        myState: { coins: sword.coins, hand: [...sword.hand], shopLevel: sword.shopLevel, statUpgrades: sword.statUpgrades },
       });
     });
 
-    this.phaseStartMs = Date.now();
     this.timer = setTimeout(() => this._startRound(), GAME_CONFIG.SHOP_DURATION_MS);
   }
 

@@ -76,10 +76,8 @@ function connectSocket(idToken) {
   socket.on('hand_update',     (data) => { Game.onHandUpdate(data); Shop.onHandUpdate(data); });
   socket.on('card_effect',     (data) => Game.onCardEffect(data));
   socket.on('pre_combat',    ()     => Game.onPreCombat());
-socket.on('timer_skip',    (data) => {
-  if (data.phase === 'ROUND') Game.onTimerSkip(data);
-  else if (data.phase === 'SHOP') Shop.onTimerSkip(data);
-});
+socket.on('upgrade_stat_result', (data) => Shop.onUpgradeStatResult(data));
+socket.on('buy_shield_result', (data) => Game.onBuyShieldResult(data));
 socket.on('match_end',     (data) => { Result.onMatchEnd(data); showScreen('screen-result'); });
 }
 

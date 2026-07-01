@@ -11,6 +11,8 @@
   let getSocket;
   let timerInterval = null;
   let _cooldownRAF = null;
+  let _shieldCount = 0;
+  let _shieldQty = 1;
   let state = { myHp: 100, oppHp: 100, myLevel: 0, myCombo: 0, myCoins: 100 };
 
   function init(socketGetter) {
@@ -23,6 +25,11 @@
     document.getElementById('btn-sell').addEventListener('click', () => {
       getSocket()?.emit('sell_sword');
     });
+    document.getElementById('btn-buy-shield')?.addEventListener('click', () => {
+      getSocket()?.emit('buy_shield', { qty: _shieldQty });
+    });
+    document.getElementById('btn-shield-minus')?.addEventListener('click', () => _updateShieldQty(-1));
+    document.getElementById('btn-shield-plus')?.addEventListener('click',  () => _updateShieldQty(+1));
 
     document.getElementById('btn-back-menu').addEventListener('click', () => {
       showScreen('screen-menu');
@@ -217,6 +224,7 @@
     state.myHp = 100; state.oppHp = 100;
     _updateHp(100, 100);
     _updateMyState({ level: myState.level, combo: myState.combo, coins: myState.coins });
+    _renderShieldWidget(myState.shieldCount ?? 0);
     _updateOppState({ level: opponentState.level, atk: opponentState.atk });
     _buildHandSlots('hand-bar');
   }
@@ -229,10 +237,9 @@
     const ov = document.getElementById('enhance-cooldown-overlay'); if (ov) ov.style.display = 'none';
     const fill3 = document.getElementById('enhance-cooldown-fill'); if (fill3) fill3.style.height = '0%';
     document.getElementById('btn-sell').disabled = false;
-    const skipRoundBtn = document.getElementById('btn-skip-round');
-    if (skipRoundBtn) skipRoundBtn.disabled = false;
     _startTimer(timeLeft, 'timer-bar', 'timer-text');
     _updateMyState({ level: myState.level, combo: myState.combo, coins: myState.coins });
+    _renderShieldWidget(myState.shieldCount ?? 0);
     _updateOppState({ level: opponentState.level, atk: opponentState.atk });
     _updateHp(myState.hp, opponentState.hp);
     state.myHp = myState.hp; state.oppHp = opponentState.hp;
@@ -240,7 +247,7 @@
     if (typeof FX !== 'undefined') FX.roundStart(round);
   }
 
-  function onEnhanceResult({ success, level, combo, coins, hand, cooldownMs }) {
+  function onEnhanceResult({ success, level, combo, coins, hand, cooldownMs, shieldConsumed, shieldCount }) {
     const prevCoins = state.myCoins;
     _updateMyState({ level, combo, coins });
     if (hand) _updateHand(hand, 'hand-bar');
@@ -248,11 +255,13 @@
     if (cooldownMs) _startCooldown(cooldownMs);
 
     const delta = Math.abs(coins - prevCoins);
+    if (shieldCount !== undefined) _renderShieldWidget(shieldCount);
     if (typeof FX !== 'undefined') {
       FX.coinChange('minus', delta);
       if (success) FX.success(combo);
-      else         FX.fail();
+      else if (!shieldConsumed) FX.fail();
     }
+    if (shieldConsumed && typeof FX !== 'undefined') FX.coinChange('plus', 0);
   }
 
   function onPreCombat() {
@@ -261,16 +270,40 @@
     const bar = document.getElementById('timer-bar');
     if (txt) txt.textContent = '⚔';
     if (bar) bar.style.width = '0%';
-    const skipBtn = document.getElementById('btn-skip-round');
-    if (skipBtn) skipBtn.disabled = true;
   }
 
-  function onTimerSkip({ timeLeft }) {
-    _startTimer(timeLeft, 'timer-bar', 'timer-text');
-    const skipBtn = document.getElementById('btn-skip-round');
-    if (skipBtn) skipBtn.disabled = true;
+  function _updateShieldQty(delta) {
+    const maxBuy = Math.max(0, 7 - _shieldCount);
+    _shieldQty = Math.max(1, Math.min(maxBuy, _shieldQty + delta));
+    _renderShieldWidget();
   }
 
+  function _renderShieldWidget(count) {
+    if (count !== undefined) _shieldCount = count;
+    const cntEl = document.getElementById('shield-count');
+    const qtyEl = document.getElementById('shield-qty');
+    const cstEl = document.getElementById('shield-buy-cost');
+    const buyBtn = document.getElementById('btn-buy-shield');
+    const plusBtn = document.getElementById('btn-shield-plus');
+    const minBtn  = document.getElementById('btn-shield-minus');
+    if (cntEl) cntEl.textContent = _shieldCount;
+    const maxBuy = Math.max(0, 7 - _shieldCount);
+    if (maxBuy === 0) {
+      if (qtyEl) qtyEl.textContent = '-';
+      if (cstEl) cstEl.textContent = 'MAX';
+      if (buyBtn) buyBtn.disabled = true;
+      if (plusBtn) plusBtn.disabled = true;
+      if (minBtn) minBtn.disabled = true;
+      return;
+    }
+    _shieldQty = Math.max(1, Math.min(maxBuy, _shieldQty));
+    if (qtyEl) qtyEl.textContent = _shieldQty;
+    if (buyBtn) buyBtn.disabled = false;
+    if (plusBtn) plusBtn.disabled = _shieldQty >= maxBuy;
+    if (minBtn) minBtn.disabled = _shieldQty <= 1;
+    const n = _shieldCount, q = _shieldQty;
+    if (cstEl) cstEl.textContent = (100 * (Math.pow(2, n + q + 1) - Math.pow(2, n + 1) - q)) + 'c';
+  }
   function onSellResult({ gained, coins, hand }) {
     _updateMyState({ level: 0, combo: 0, coins });
     if (hand) _updateHand(hand, 'hand-bar');
@@ -314,10 +347,16 @@
     if (effect === 'stolen' && amount > 0) _flashDamage(`-${amount} 코인!`);
   }
 
+  function onBuyShieldResult({ success, shieldCount, coins, reason }) {
+    if (!success) return;
+    _renderShieldWidget(shieldCount);
+    _updateMyState({ level: state.myLevel, combo: state.myCombo, coins });
+  }
+
   return {
     init, onMatchFound, onRoundStart,
     onEnhanceResult, onSellResult, onOpponentUpdate, onRoundEnd,
     onUseCardResult, onHandUpdate, onCardEffect,
-    onPreCombat, onTimerSkip,
+    onPreCombat, onBuyShieldResult,
   };
 })();

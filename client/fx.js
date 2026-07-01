@@ -535,7 +535,7 @@ const FX = (() => {
 
     // 고스트 생성
     const ghost = document.createElement('div');
-    ghost.style.cssText = 'position:absolute;z-index:9999;pointer-events:none;opacity:0.88;width:' + sourceEl.offsetWidth + 'px;height:' + sourceEl.offsetHeight + 'px;';
+    ghost.style.cssText = 'position:absolute;z-index:9999;pointer-events:none;opacity:0.88;visibility:hidden;width:' + sourceEl.offsetWidth + 'px;height:' + sourceEl.offsetHeight + 'px;';
     ghost.innerHTML = sourceEl.innerHTML;
     root.appendChild(ghost);
 
@@ -546,6 +546,7 @@ const FX = (() => {
       const cy = (e.clientY - rootRect.top) / scale;
       ghost.style.left = (cx - sourceEl.offsetWidth / 2) + 'px';
       ghost.style.top  = (cy - sourceEl.offsetHeight / 2) + 'px';
+      ghost.style.visibility = 'visible';
 
       const over = getIsOver(e);
       const hlEl = getHighlightEl ? getHighlightEl() : null;

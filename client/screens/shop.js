@@ -1,6 +1,8 @@
 ﻿const Shop = (() => {
   let getSocket;
   let currentCoins = 0;
+  let _upgPanelOpen = false;
+  let _statUpgrades = { successLv: 0, successBonus: 0, cooldownLv: 0, cooldownMul: 1.0 };
   let hand = [];
   let currentCards = [];  // _renderShelf가 저장, onBuyCardResult에서 참조
   let shopLevel = 1;
@@ -29,13 +31,69 @@
       _triggerAnim(document.getElementById('btn-shop-freeze'), 'fx_btnPress .3s steps(3) both');
       getSocket()?.emit('freeze_shop');
     });
-    document.getElementById('btn-skip-shop')?.addEventListener('click', () => {
-      const btn = document.getElementById('btn-skip-shop');
-      if (btn) btn.disabled = true;
-      getSocket()?.emit('skip_shop');
+    document.getElementById('btn-toggle-upg-panel')?.addEventListener('click', _toggleUpgradePanel);
+    document.getElementById('btn-upg-success')?.addEventListener('click', () => {
+      getSocket()?.emit('upgrade_stat', { type: 'success' });
+    });
+    document.getElementById('btn-upg-cooldown')?.addEventListener('click', () => {
+      getSocket()?.emit('upgrade_stat', { type: 'cooldown' });
     });
   }
 
+  function _renderUpgradePanel({ successLv, successBonus, cooldownLv, cooldownMul }) {
+    const sLv = document.getElementById('stat-success-lv');
+    const sBonus = document.getElementById('stat-success-bonus');
+    const sCost = document.getElementById('stat-success-cost');
+    const sBtn = document.getElementById('btn-upg-success');
+    const cdLv = document.getElementById('stat-cd-lv');
+    const cdBonus = document.getElementById('stat-cd-bonus');
+    const cdCost = document.getElementById('stat-cd-cost');
+    const cdBtn = document.getElementById('btn-upg-cooldown');
+    if (sLv) sLv.textContent = successLv;
+    if (sBonus) sBonus.textContent = Math.round(successBonus * 100);
+    if (sCost) sCost.textContent = Math.round(200 * Math.pow(2, successLv)) + 'c';
+    if (sBtn) sBtn.disabled = successLv >= 4;
+    if (cdLv) cdLv.textContent = cooldownLv;
+    if (cdBonus) cdBonus.textContent = Math.round((1 - cooldownMul) * 100);
+    if (cdCost) cdCost.textContent = Math.round(150 * Math.pow(2, cooldownLv)) + 'c';
+    if (cdBtn) cdBtn.disabled = cooldownLv >= 4;
+  }
+
+  function _toggleUpgradePanel() {
+    const title = document.getElementById('shop-panel-title');
+    const toggleBtn = document.getElementById('btn-toggle-upg-panel');
+    const buttonsRow = document.getElementById('shop-buttons-row');
+    const cardArea = document.getElementById('shop-card-area');
+    const upgradePanel = document.getElementById('shop-upgrade-panel');
+    if (!_upgPanelOpen) {
+      _upgPanelOpen = true;
+      if (title) title.textContent = '스탯 업그레이드';
+      if (toggleBtn) toggleBtn.textContent = '←';
+      if (buttonsRow) {
+        buttonsRow.style.animation = 'fx_panelToLeft .2s steps(4) both';
+        setTimeout(() => { buttonsRow.style.display = 'none'; }, 220);
+      }
+      if (cardArea) {
+        cardArea.style.animation = 'fx_panelToLeft .2s steps(4) both';
+        setTimeout(() => {
+          cardArea.style.display = 'none';
+          if (upgradePanel) { upgradePanel.style.display = 'flex'; upgradePanel.style.animation = 'fx_panelFromRight .2s steps(4) both'; }
+        }, 220);
+      }
+    } else {
+      _upgPanelOpen = false;
+      if (title) title.textContent = '카드 상점';
+      if (toggleBtn) toggleBtn.textContent = '→';
+      if (upgradePanel) {
+        upgradePanel.style.animation = 'fx_panelToRight .2s steps(4) both';
+        setTimeout(() => {
+          upgradePanel.style.display = 'none';
+          if (buttonsRow) { buttonsRow.style.display = 'flex'; buttonsRow.style.animation = 'fx_panelFromLeft .2s steps(4) both'; }
+          if (cardArea) { cardArea.style.display = 'flex'; cardArea.style.animation = 'fx_panelFromLeft .2s steps(4) both'; }
+        }, 220);
+      }
+    }
+  }
   function _syncCoins(c) {
     currentCoins = c;
     const e1 = document.getElementById('shop-coins');  if (e1) e1.textContent = Math.floor(c);
@@ -59,16 +117,18 @@
   }
 
   function onShopStart({ timeLeft, cards, myState }) {
-    const skipShopBtn = document.getElementById('btn-skip-shop');
-    if (skipShopBtn) skipShopBtn.disabled = false;
     currentCoins = myState?.coins ?? currentCoins;
     hand         = myState?.hand  ?? hand;
     shopLevel    = myState?.shopLevel ?? shopLevel;
+    if (myState?.statUpgrades) {
+      _statUpgrades = myState.statUpgrades;
+      _renderUpgradePanel(_statUpgrades);
+    }
 
     _syncCoins(currentCoins);
 
     const lvDisp = document.getElementById('shop-level-display');
-    if (lvDisp) lvDisp.textContent = 'Lv.' + shopLevel;
+    if (lvDisp) lvDisp.textContent = shopLevel;
 
     const upgBtn = document.getElementById('btn-upg-shop');
     if (upgBtn) {
@@ -242,7 +302,7 @@
     if (hcEl) hcEl.textContent = '손패 ' + (hand ? hand.length : 0) + ' / 8';
     // 레벨 표시 + 업그레이드 버튼 innerHTML 재렌더 (onShopStart와 동일 방식)
     const lvDisp = document.getElementById('shop-level-display');
-    if (lvDisp) lvDisp.textContent = 'Lv.' + shopLevel;
+    if (lvDisp) lvDisp.textContent = shopLevel;
     const upgBtn = document.getElementById('btn-upg-shop');
     const uc = SHOP_UPGRADE_COSTS[shopLevel];
     if (upgBtn) {
@@ -329,11 +389,17 @@
     }
   }
 
-  function onTimerSkip({ timeLeft }) {
-    _startShopTimer(timeLeft);
-    const skipBtn = document.getElementById('btn-skip-shop');
-    if (skipBtn) skipBtn.disabled = true;
+  function onUpgradeStatResult({ success, type, reason, successLv, successBonus, cooldownLv, cooldownMul, coins }) {
+    if (!success) {
+      const msgs = { MAX_LEVEL: '이미 최대 등급', INSUFFICIENT_COINS: '코인 부족' };
+      _showToast(msgs[reason] || '업그레이드 불가');
+      return;
+    }
+    _syncCoins(coins);
+    _statUpgrades = { successLv, successBonus, cooldownLv, cooldownMul };
+    _renderUpgradePanel(_statUpgrades);
+    if (typeof FX !== 'undefined') FX.coinChange('minus', 0);
   }
 
-  return { init, onShopStart, onBuyCardResult, onSellHandCardResult, onHandUpdate, onUpgradeResult, onRerollResult, onFreezeResult, onTimerSkip };
+  return { init, onShopStart, onBuyCardResult, onSellHandCardResult, onHandUpdate, onUpgradeResult, onRerollResult, onFreezeResult, onUpgradeStatResult };
 })();

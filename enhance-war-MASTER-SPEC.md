@@ -207,3 +207,30 @@ damageMultiplier(round) = 1 + (round - 1) * 0.15
 
 ## 12. 알려진 이슈 로그 (재발 방지용)
 - **2025-XX**: CLAUDE.md에 §3의 (A)(B)를 한 문장으로 합쳐 써서 "강화 실패해도 단계 안 떨어지는" 버그 발생. 수정 완료. 앞으로 이 둘은 항상 표로 분리해서 적을 것.
+
+## 13. 인게임 업그레이드 시스템
+
+### 13-1. 스탯 업그레이드 (상점 화면)
+
+상점 패널 우측 -> 버튼으로 카드 진열대와 업그레이드 패널을 슬라이드 전환.
+
+| 업그레이드 | 효과 | MAX | 가격 |
+|---|---|---|---|
+| 성공률 부스트 | +5%p/Lv | +20%p (Lv.4) | 200 * 2^Lv 코인 |
+| 쿨타임 감소 | -10%/Lv | -40% (Lv.4) | 150 * 2^Lv 코인 |
+
+- STAT_SUCCESS_BASE_COST:200, STAT_SUCCESS_GROWTH:2, STAT_SUCCESS_PER_LV:0.05, STAT_SUCCESS_MAX_LV:4
+- STAT_CD_BASE_COST:150, STAT_CD_GROWTH:2, STAT_CD_REDUCE_PER_LV:0.10, STAT_CD_MAX_LV:4
+- sword.statUpgrades = { successLv, successBonus, cooldownLv, cooldownMul } (매치별 초기화)
+- 성공률 보너스 _passiveMods() 경유, 쿨타임 감소 _enhanceCooldown()에서 cd *= cooldownMul
+
+### 13-2. 방지권 (대결 화면)
+
+강화 실패 시 검 파괴 1회 방지. MAX 7개.
+
+- n개 보유 시 다음 1개 가격: 100 * (2^(n+1) - 1)
+  - 0->1: 100c, 1->2: 300c, 2->3: 700c, 3->4: 1500c, ...
+- qty개 일괄 구매 총액: 100 * (2^(n+qty+1) - 2^(n+1) - qty)
+- 소모 우선순위: 보험증서(c014) > 방지권 > 일반 파괴
+- 소모 시: 레벨/콤보 유지, 코인 환불 없음, enhance_result에 shieldConsumed:true 포함
+- SHIELD_BASE_COST:100, SHIELD_MAX_COUNT:7

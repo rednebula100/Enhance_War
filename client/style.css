@@ -3,6 +3,10 @@
 html, body { margin: 0; padding: 0; overflow: hidden; background: #0e0c12; }
 button { appearance: none; -webkit-appearance: none; }
 button:disabled { opacity: 1; }
+@keyframes fx_panelToLeft    { 0%{transform:translateX(0);opacity:1} 100%{transform:translateX(-22px);opacity:0} }
+@keyframes fx_panelFromRight { 0%{transform:translateX(22px);opacity:0} 100%{transform:translateX(0);opacity:1} }
+@keyframes fx_panelToRight   { 0%{transform:translateX(0);opacity:1} 100%{transform:translateX(22px);opacity:0} }
+@keyframes fx_panelFromLeft  { 0%{transform:translateX(-22px);opacity:0} 100%{transform:translateX(0);opacity:1} }
 #hammer-icon { opacity: 0; }
 #hammer-icon.hammer-strike { animation: fx_hammer .25s steps(4) both, fx_hammerUp .28s steps(4) .18s both; opacity: 1; }
 #game-root {

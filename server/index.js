@@ -105,23 +105,23 @@ io.on('connection', (socket) => {
     if (!session?.room) return;
     rooms.get(session.room)?.handleFreezeShop(session.playerIdx);
   });
-
-  socket.on('skip_round', () => {
-  const session = sessions.get(socket.id);
-  if (!session?.room) return;
-  rooms.get(session.room)?.handleSkipRound(session.playerIdx);
-});
-socket.on('skip_shop', () => {
-  const session = sessions.get(socket.id);
-  if (!session?.room) return;
-  rooms.get(session.room)?.handleSkipShop(session.playerIdx);
-});
 socket.on('use_card', ({ cardId }) => {
     const session = sessions.get(socket.id);
     if (!session?.room) return;
     rooms.get(session.room)?.handleUseCard(session.playerIdx, cardId);
   });
 
+  socket.on('upgrade_stat', ({ type }) => {
+    const session = sessions.get(socket.id);
+    if (!session?.room) return;
+    rooms.get(session.room)?.handleUpgradeStat(session.playerIdx, type);
+  });
+
+  socket.on('buy_shield', ({ qty }) => {
+    const session = sessions.get(socket.id);
+    if (!session?.room) return;
+    rooms.get(session.room)?.handleBuyShield(session.playerIdx, qty || 1);
+  });
   socket.on('disconnect', () => {
     const session = sessions.get(socket.id);
     if (!session) return;
