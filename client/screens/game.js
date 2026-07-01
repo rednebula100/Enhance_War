@@ -293,9 +293,13 @@
   let _shieldDrawerOpen = false;
   function _toggleShieldDrawer() {
     _shieldDrawerOpen = !_shieldDrawerOpen;
+    const panel = document.getElementById('my-panel');
     const track = document.getElementById('shield-drawer-track');
     const toggle = document.getElementById('shield-drawer-toggle');
-    if (track) track.style.width = _shieldDrawerOpen ? '196px' : '0';
+    // 패널 자체의 너비와 트랙 너비를 같은 폭(220px)만큼 같이 늘려야 강화/판매 칸이 제자리에 고정된 채
+    // 방지권 영역만 옆에서 밀려나오는 것처럼 보임
+    if (panel) panel.style.width = _shieldDrawerOpen ? '980px' : '760px';
+    if (track) track.style.width = _shieldDrawerOpen ? '220px' : '0';
     if (toggle) toggle.textContent = _shieldDrawerOpen ? '<' : '>';
   }
 
