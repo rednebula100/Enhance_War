@@ -719,7 +719,7 @@ class GameRoom {
       this._emit(i, 'shop_start', {
         timeLeft: GAME_CONFIG.SHOP_DURATION_MS / 1000,
         cards: shopCards,
-        myState: { coins: sword.coins, hand: [...sword.hand], shopLevel: sword.shopLevel, statUpgrades: sword.statUpgrades },
+        myState: { coins: sword.coins, hand: [...sword.hand], shopLevel: sword.shopLevel, statUpgrades: sword.statUpgrades, freezeLeft: sword.freezeLeft },
       });
     });
 

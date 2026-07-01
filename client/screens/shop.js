@@ -94,6 +94,16 @@
       }
     }
   }
+  function _renderUpgBtn(upgBtn, lvl) {
+    const uc = SHOP_UPGRADE_COSTS[lvl];
+    upgBtn.innerHTML = uc
+      ? '레벨업 ⬆<br><span style="font-size:8px;">' + uc + '코인</span>'
+      : '최대 레벨';
+    upgBtn.style.opacity = uc ? '1' : '.5';
+    upgBtn.style.cursor = uc ? 'pointer' : 'default';
+    upgBtn.style.pointerEvents = uc ? 'auto' : 'none';
+  }
+
   function _syncCoins(c) {
     currentCoins = c;
     const e1 = document.getElementById('shop-coins');  if (e1) e1.textContent = Math.floor(c);
@@ -127,16 +137,17 @@
 
     _syncCoins(currentCoins);
 
+    const leftEl0 = document.getElementById('freeze-left');
+    if (leftEl0 && myState?.freezeLeft !== undefined) leftEl0.textContent = myState.freezeLeft;
+
     const lvDisp = document.getElementById('shop-level-display');
     if (lvDisp) lvDisp.textContent = shopLevel;
 
     const upgBtn = document.getElementById('btn-upg-shop');
     if (upgBtn) {
-      const uc = SHOP_UPGRADE_COSTS[shopLevel];
-      upgBtn.innerHTML = uc
-        ? 'Lv' + (shopLevel + 1) + ' 업그레이드<br><span style="font-size:8px;">' + uc + '코인</span>'
-        : '최대 등급';
+      _renderUpgBtn(upgBtn, shopLevel);
       upgBtn.onclick = () => {
+        if (SHOP_UPGRADE_COSTS[shopLevel] === null) return;
         _triggerAnim(upgBtn, 'fx_btnPress .3s steps(3) both');
         getSocket()?.emit('upgrade_shop');
       };
@@ -304,12 +315,7 @@
     const lvDisp = document.getElementById('shop-level-display');
     if (lvDisp) lvDisp.textContent = shopLevel;
     const upgBtn = document.getElementById('btn-upg-shop');
-    const uc = SHOP_UPGRADE_COSTS[shopLevel];
-    if (upgBtn) {
-      upgBtn.innerHTML = uc
-        ? 'Lv' + (shopLevel + 1) + ' 업그레이드<br><span style="font-size:8px;">' + uc + '코인</span>'
-        : '최대 등급';
-    }
+    if (upgBtn) _renderUpgBtn(upgBtn, shopLevel);
     // fx_lvNumPop on level number, fx_lvGlow on upgrade button (Battle.dc.html verbatim)
     _triggerAnim(lvDisp, 'fx_lvNumPop .5s steps(5) both');
     _triggerAnim(upgBtn, 'fx_lvGlow 1s steps(5) both');
