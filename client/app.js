@@ -101,4 +101,15 @@ document.addEventListener('DOMContentLoaded', () => {
   Game.init(() => socket);
   Shop.init(() => socket);
   Result.init(() => socket);
+
+  // ── 버전 표시 ────────────────────────────────
+  fetch('/version')
+    .then(res => res.json())
+    .then(({ version }) => {
+      const label = document.getElementById('version-label');
+      const labelMenu = document.getElementById('version-label-menu');
+      if (label) label.textContent = `v${version}`;
+      if (labelMenu) labelMenu.textContent = `v${version}`;
+    })
+    .catch(() => {});
 });

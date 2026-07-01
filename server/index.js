@@ -9,6 +9,7 @@ const GameRoom = require('./GameRoom');
 
 const app = express();
 app.use((_req, res, next) => { res.setHeader('Cross-Origin-Opener-Policy', 'same-origin-allow-popups'); next(); });
+app.get('/version', (_req, res) => { res.json({ version: process.env.APP_VERSION || 'dev' }); });
 app.use(express.static(path.join(__dirname, '../client')));
 const httpServer = createServer(app);
 const io = new Server(httpServer, { cors: { origin: '*' } });
