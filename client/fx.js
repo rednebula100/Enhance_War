@@ -373,14 +373,41 @@ const FX = (() => {
     const winSwordEl = el('cbsword-' + winner);
     if (winSwordEl) winSwordEl.style.animation = 'fx_winGlow 1.2s ease-in-out infinite';
 
+    await new Promise(res => setTimeout(res, 300));
+
+    // Finishing push -- winner's sword drives forward through the wreckage (FX08)
+    const pushDir = winner === 'me' ? 1 : -1;
+    if (winSwordEl) {
+      winSwordEl.style.transition = 'transform .34s steps(6)';
+      winSwordEl.style.transform = 'translateX(' + (pushDir * 140) + 'px)';
+    }
+    await new Promise(res => setTimeout(res, 340));
+
+    // Impact -- push lands on the loser's side, HP ticks down with the strike
+    const pushSideX = loserSide === 'me' ? '30%' : '70%';
+    for (let j = 0; j < 22; j++) {
+      const ang = (Math.PI * 2 * j) / 22;
+      const d = 70 + (j % 4) * 18;
+      const sp = document.createElement('div');
+      sp.style.cssText = 'position:absolute;left:' + pushSideX + ';top:44%;width:' + (4+(j%3)) + 'px;height:' + (4+(j%3)) + 'px;background:#fff2c8;box-shadow:0 0 8px #ff7a2a;--dx:' + (Math.cos(ang)*d) + 'px;--dy:' + (Math.sin(ang)*d-10) + 'px;animation:fx_spark ' + (0.32+(j%3)*0.06) + 's steps(5) both;';
+      sparkLyr.appendChild(sp);
+      setTimeout(() => sp.remove(), 600);
+    }
+    const impactFlash = document.createElement('div');
+    impactFlash.style.cssText = 'position:absolute;inset:0;background:radial-gradient(circle at ' + pushSideX + ' 44%,rgba(255,200,110,.9),transparent 55%);animation:fx_flash .45s steps(6) both;z-index:9;';
+    sparkLyr.appendChild(impactFlash);
+    setTimeout(() => impactFlash.remove(), 500);
+
+    if (updateHpCb) updateHpCb(finalMyHp, finalOppHp);
+    if (damageTaken > 0 && flashCb) flashCb('-' + Math.round(damageTaken) + ' HP');
+
+    await new Promise(res => setTimeout(res, 150));
+
     // Result banner (FX07 result verbatim)
     const resultEl = document.createElement('div');
     resultEl.style.cssText = 'position:absolute;left:50%;top:34%;z-index:9;font-family:Galmuri11,sans-serif;font-size:44px;color:' + (winner==='me'?'#ffd76a':'#cfd2db') + ';text-shadow:' + (winner==='me'?'0 0 16px rgba(245,170,60,.7),3px 3px 0 #000':'3px 3px 0 #000') + ';letter-spacing:3px;white-space:nowrap;animation:fx_resultIn .6s steps(7) both;transform:translate(-50%,-50%);';
     resultEl.textContent = winner === 'me' ? 'WIN!' : 'LOSE';
     engLyr.appendChild(resultEl);
-
-    if (updateHpCb) updateHpCb(finalMyHp, finalOppHp);
-    if (damageTaken > 0 && flashCb) flashCb('-' + Math.round(damageTaken) + ' HP');
 
     await new Promise(res => setTimeout(res, 1600));
 
@@ -551,7 +578,13 @@ const FX = (() => {
       const over = getIsOver(e);
       const hlEl = getHighlightEl ? getHighlightEl() : null;
       if (hlEl && over !== wasOver) {
-        hlEl.style.boxShadow = over ? 'inset 0 0 0 3px #5fd6c4, 0 0 16px rgba(95,214,196,.55)' : '';
+        if (over) {
+          hlEl.style.boxShadow = 'inset 0 0 0 3px #f5a93a, inset 0 0 0 6px rgba(20,14,4,.55), 0 0 22px rgba(245,151,42,.5)';
+          hlEl.style.animation = 'fx_dragGlow .9s steps(6) infinite';
+        } else {
+          hlEl.style.boxShadow = '';
+          hlEl.style.animation = '';
+        }
         wasOver = over;
       }
     };
@@ -561,7 +594,7 @@ const FX = (() => {
       document.removeEventListener('mouseup', up);
       ghost.remove();
       const hlEl = getHighlightEl ? getHighlightEl() : null;
-      if (hlEl) hlEl.style.boxShadow = '';
+      if (hlEl) { hlEl.style.boxShadow = ''; hlEl.style.animation = ''; }
       if (getIsOver(e)) onDrop();
     };
 

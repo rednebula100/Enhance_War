@@ -665,7 +665,7 @@ class GameRoom {
         if (ci >= 9) cInterval = Math.max(80, Math.round(cInterval * 0.9));
         if (ci < combatHits.length - 1) animMs += cInterval;
       }
-      animMs += 700; // _wait(150) + _wait(550)
+      animMs += 1490; // _wait(150) + _wait(550) + finishing push phase(300+340+150=790)
     }
     const shopDelay = Math.max(800, animMs + 300) + GAME_CONFIG.POST_COMBAT_DELAY_MS;
 
